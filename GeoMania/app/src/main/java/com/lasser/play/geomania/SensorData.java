@@ -49,7 +49,7 @@ public class SensorData {
                 magnetic[1] = sensorEvent.values[1];
                 magnetic[2] = sensorEvent.values[2];
             }
-            if (sensorEvent.sensor.getType() == Sensor.TYPE_PRESSURE){
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_PRESSURE) {
                 pressure = sensorEvent.values[0];
             }
             //if(mContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED)
