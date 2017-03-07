@@ -16,4 +16,5 @@
         completions."
     </string>
     <string name="title_activity_profile_page">My Profile</string>
+    <string name="title_activity_maps">Map</string>
 </resources>

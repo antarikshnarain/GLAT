@@ -37,6 +37,7 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
     protected JSONObject doInBackground(URLDataHash... mydata) {
         //"192.168.43.231"
         String link="http://"+mydata[0].url+":8080"+"/"+mydata[0].apicall;
+        // Convert Hash Map to JSON Object
         JSONObject jsonobj = new JSONObject();
         // NOTE: Nested JSON is possible
         for (Map.Entry<String, String> entry : mydata[0].hashMap.entrySet()) {

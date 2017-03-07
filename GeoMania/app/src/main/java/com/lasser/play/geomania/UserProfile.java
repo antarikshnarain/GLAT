@@ -60,6 +60,10 @@ public class UserProfile extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
+        //
+        Intent i = new Intent().setClass(this,MapsActivity.class);
+        startActivity(i);
+        //
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         username = (EditText) findViewById(R.id.username);
@@ -74,13 +78,8 @@ public class UserProfile extends Activity{
         });
         String mname = sharedPref.getString("username", "");
         String mphone = sharedPref.getString("password", "");
-
-        // Example of a call to a native method
         tv = (TextView) findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
-        //Intent intent = new Intent();
-        //intent.setClass(this,LoginActivity.class);
-        //startActivity(intent);
         TelephonyManager telephonyManager = (TelephonyManager) this.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
         String mPhoneNo = telephonyManager.getSimSerialNumber();
         tv.setText(mPhoneNo);
