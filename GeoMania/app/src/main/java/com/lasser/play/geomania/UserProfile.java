@@ -1,39 +1,28 @@
 package com.lasser.play.geomania;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
-import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+
+import com.lasser.play.geomania.AsyncJava.URLDataHash;
+import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 
 public class UserProfile extends Activity{
@@ -61,7 +50,7 @@ public class UserProfile extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
         //
-        Intent i = new Intent().setClass(this,MapsActivity.class);
+        Intent i = new Intent().setClass(this,ProfilePage.class);
         startActivity(i);
         //
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);

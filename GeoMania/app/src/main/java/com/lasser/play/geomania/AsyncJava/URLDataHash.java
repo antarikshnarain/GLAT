@@ -1,4 +1,4 @@
-package com.lasser.play.geomania;
+package com.lasser.play.geomania.AsyncJava;
 
 import java.util.HashMap;
 

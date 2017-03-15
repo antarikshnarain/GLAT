@@ -1,4 +1,4 @@
-package com.lasser.play.geomania;
+package com.lasser.play.geomania.AsyncJava;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -75,6 +74,7 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
             result = bufferedReader.readLine();
             //con.disconnect();
             // Parsing String to JSON
+            // note: all data received is in text format,
             Log.d("MYAPP",result);
             JSONObject myobj = new JSONObject(result);
             return myobj;

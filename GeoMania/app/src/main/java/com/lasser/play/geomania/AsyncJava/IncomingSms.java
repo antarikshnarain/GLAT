@@ -1,4 +1,4 @@
-package com.lasser.play.geomania;
+package com.lasser.play.geomania.AsyncJava;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,6 +9,8 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.lasser.play.geomania.UserProfile;
 
 /**
  * Created by antar on 04-Feb-17.

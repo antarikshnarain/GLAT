@@ -38,7 +38,7 @@
         </activity>
         <!-- Important To make the real time receiver work -->
         <receiver
-            android:name=".IncomingSms"
+            android:name=".AsyncJava.IncomingSms"
             android:exported="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
