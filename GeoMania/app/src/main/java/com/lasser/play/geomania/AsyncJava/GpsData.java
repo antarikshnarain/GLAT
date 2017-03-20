@@ -8,9 +8,14 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.lasser.play.geomania.MapsActivity;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.security.Provider;
 
 import static android.content.Context.LOCATION_SERVICE;
@@ -27,9 +32,15 @@ public class GpsData implements LocationListener{
     public double gps_longitude=0.0, gps_latitude=0.0;
     public String provider;
     final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 Meters
-    final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+    final long MIN_TIME_BW_UPDATES = 1000 * 2 * 1; // 1 minute
     protected LocationManager locationManager;
 
+    // Writing to File
+    String filename = "MyGPSData.csv";
+    FileOutputStream outputStream;
+    File sdcard = Environment.getExternalStorageDirectory();
+    // to this path add a new directory path
+    File dir = new File(sdcard.getAbsolutePath() + "/GeoMania/");
     public GpsData(Context context){
         this.mContext = context;
         getLocation();
@@ -59,14 +70,17 @@ public class GpsData implements LocationListener{
                 criteria.setCostAllowed(true);*/
                 provider = locationManager.getBestProvider(criteria, false);
                 Toast.makeText(mContext.getApplicationContext(),"Current Provider: "+provider, Toast.LENGTH_SHORT).show();
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                 if (locationManager != null) {
                     location = locationManager
-                            .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                            .getLastKnownLocation(provider);
                     if (location != null) {
                         gps_latitude = location.getLatitude();
                         gps_longitude = location.getLongitude();
                     }
+                }
+                else{
+                    Log.d("MYAPP","Location Manager NULL");
                 }
                 Log.d("MYAPP","Location Manager Initialized!");
             }
@@ -80,6 +94,20 @@ public class GpsData implements LocationListener{
         if (location != null) {
             gps_latitude = location.getLatitude();
             gps_longitude = location.getLongitude();
+            MapsActivity mapsActivity = new MapsActivity();
+            mapsActivity.updateMap(gps_latitude,gps_longitude);
+            String data = String.valueOf(gps_latitude)+','+String.valueOf(gps_longitude)+'\n';
+            dir.mkdir();
+            try {
+                File file = new File(dir, filename);
+                outputStream = new FileOutputStream(file,true);
+                outputStream.write(data.getBytes());
+                outputStream.close();
+                //Log.d("MYAPP", "Data Written to file successfully");
+            }
+            catch (Exception e){
+                Log.d("MYAPP","File Cannot be written");
+            }
         }
         Log.d("MYAPP", "Updating My Location!");
     }

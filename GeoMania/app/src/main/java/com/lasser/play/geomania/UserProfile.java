@@ -48,11 +48,11 @@ public class UserProfile extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user_profile);
         //
-        Intent i = new Intent().setClass(this,ProfilePage.class);
+        Intent i = new Intent().setClass(this,MapsActivity.class);
         startActivity(i);
         //
+        setContentView(R.layout.activity_user_profile);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         username = (EditText) findViewById(R.id.username);

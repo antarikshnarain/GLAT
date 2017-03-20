@@ -56,7 +56,8 @@ public class ProfilePage extends AppCompatActivity{
             public void onClick(View view) {
                 Snackbar.make(view, "Sensor Data Updated", Snackbar.LENGTH_SHORT)
                         .setAction("Action", null).show();
-                updateData();
+                //updateData();
+                gpsData.getLocation();
             }
         });
         final Handler h = new Handler();
