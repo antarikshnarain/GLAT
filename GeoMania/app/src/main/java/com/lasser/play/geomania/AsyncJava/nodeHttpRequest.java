@@ -1,18 +1,31 @@
 package com.lasser.play.geomania.AsyncJava;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Path;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -35,13 +48,16 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
     @Override
     protected JSONObject doInBackground(URLDataHash... mydata) {
         //"192.168.43.231"
+        /*
+        Organizing data from mydata
+         */
         String link="http://"+mydata[0].url+":8080"+"/"+mydata[0].apicall;
         // Convert Hash Map to JSON Object
         JSONObject jsonobj = new JSONObject();
         // NOTE: Nested JSON is possible
-        for (Map.Entry<String, String> entry : mydata[0].hashMap.entrySet()) {
+        for (Map.Entry<String, Object> entry : mydata[0].hashMap.entrySet()) {
             String key = entry.getKey();
-            String value = entry.getValue();
+            Object value = entry.getValue();
             try{
                 jsonobj.put(key,value);
             }
@@ -49,6 +65,15 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
                 ex.printStackTrace();
             }
         }
+        if(mydata[0].attachFile != null){
+            try {
+                jsonobj.put("File", getStringFromFile(mydata[0].attachFile));
+            }
+            catch (JSONException e){
+                e.printStackTrace();
+            }
+        }
+        // Sending data over HTTP
         BufferedReader bufferedReader;
         String result;
         try {
@@ -81,11 +106,48 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return new JSONObject();
         }
 
     }
 
+    private String getStringFromBitmap(Bitmap bitmap){
+        // Image to String
+        final int COMPRESSION_QUALITY = 100;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY, baos);
+        byte[] mBytes = baos.toByteArray();
+        return Base64.encodeToString(mBytes,Base64.DEFAULT);
+    }
+    private Bitmap getBitmapFromString(String imageString){
+        // String to Image
+        byte[] decodeString = Base64.decode(imageString,Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodeString,0,decodeString.length);
+    }
+    private String getStringFromFile(String path){
+        final StringBuilder stringBuilder = new StringBuilder();
+        try{
+            File file = new File(path);
+            final InputStream inputStream = new FileInputStream(file);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = reader.readLine();
+            while(line != null){
+                stringBuilder.append(line+'\n');
+                line = reader.readLine();
+            }
+            reader.close();
+            inputStream.close();
+        }
+        catch (FileNotFoundException e){
+            e.printStackTrace();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
+        Log.d("MYAPP: File Data",stringBuilder.toString());
+        return stringBuilder.toString();
+    }
     @Override
     protected void onPostExecute(JSONObject result) {
         super.onPostExecute(result);

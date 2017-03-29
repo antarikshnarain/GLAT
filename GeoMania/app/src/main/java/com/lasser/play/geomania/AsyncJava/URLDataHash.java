@@ -1,5 +1,8 @@
 package com.lasser.play.geomania.AsyncJava;
 
+import android.graphics.Bitmap;
+
+import java.io.File;
 import java.util.HashMap;
 
 /**
@@ -9,6 +12,12 @@ import java.util.HashMap;
 public class URLDataHash {
     public String url;
     public String apicall;
-    public HashMap<String,String> hashMap;
+    public HashMap<String,Object> hashMap;
+    public String attachFile;
 
+    public URLDataHash(){
+        url = apicall = "";
+        attachFile = null;
+        hashMap = null;
+    }
 }

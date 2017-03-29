@@ -7,18 +7,30 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Criteria;
+import android.location.GpsSatellite;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,8 +47,10 @@ import com.lasser.play.geomania.AsyncJava.GpsData;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Iterator;
+import java.util.zip.Inflater;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener{
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener{
 
     private GoogleMap mMap;
     private Marker myMarker;
@@ -54,6 +68,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     File sdcard = Environment.getExternalStorageDirectory();
     // to this path add a new directory path
     File dir = new File(sdcard.getAbsolutePath() + "/GeoMania/");
+
+    // Layout variables
+    SearchView mSearchView;
+    ImageButton imgButton_location, imgButton_no_location, imgButton_location_tag, imgButton_no_location_tag;
+    TextView tv_message_type;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +82,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         getLocation();
         mapFragment.getMapAsync(this);
+
+        // Declaring Layout variables
+        mSearchView = (SearchView) findViewById(R.id.searchView);
+        imgButton_location = (ImageButton) findViewById(R.id.imageButton_location);
+        imgButton_location_tag = (ImageButton) findViewById(R.id.imageButton_location_tag);
+        imgButton_no_location = (ImageButton) findViewById(R.id.imageButton_no_location);
+        imgButton_no_location_tag = (ImageButton) findViewById(R.id.imageButton_no_location_tag);
+        tv_message_type = (TextView) findViewById(R.id.textView_message_type);
     }
 
     /**
@@ -176,7 +203,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .title("Mylocation").snippet(myLocation.toString()));
             CircleOptions circleOptions = new CircleOptions();
             circleOptions.center(myLocation);
-            circleOptions.radius(1);
+            circleOptions.radius(2);
             circleOptions.fillColor(-16711936);
             mMap.addCircle(circleOptions);
             //mMap.addMarker(new MarkerOptions().position(myLocation).title("My Location").snippet("AWESOME").icon(vectorToBitmap(R.drawable.ic_launcher, Color.parseColor("#A4C639"))));
@@ -185,10 +212,119 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Zooming into the map N times.
             mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
             Log.d("MYAPP","Updating Map");
+            try {
+                GpsStatus gpsStatus = locationManager.getGpsStatus(null);
+                if(gpsStatus != null) {
+                    Iterable<GpsSatellite>satellites = gpsStatus.getSatellites();
+                    Iterator<GpsSatellite> sat = satellites.iterator();
+                    String lSatellites = null;
+                    int i = 0;
+                    Log.i("MYAPP","Showing List");
+                    while (sat.hasNext()) {
+                        GpsSatellite satellite = sat.next();
+                        lSatellites = "Satellite" + (i++) + ": "
+                                + satellite.getPrn() + ","
+                                + satellite.usedInFix() + ","
+                                + satellite.getSnr() + ","
+                                + satellite.getAzimuth() + ","
+                                + satellite.getElevation()+ "\n\n";
+
+                        Log.d("MYAPP",lSatellites);
+                    }
+                }
+                else{
+                    Log.e("MYAPP","Gps Status is NULL");
+                }
+            }
+            catch (SecurityException e){
+                Log.d("MYAPP","Security Exception");
+            }
         }
         else{
             Log.d("MYAPP","Map object NULL");
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_group_map, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_editgroup:
+                // About option clicked.
+                Toast.makeText(getApplicationContext(),"Group Edit",Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.action_exitgroup:
+                // Exit option clicked.
+                Toast.makeText(getApplicationContext(),"Group Exit",Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.action_viewread:
+                Toast.makeText(getApplicationContext(),"View Read",Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.action_viewunread:
+                Toast.makeText(getApplicationContext(),"View Unread",Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.action_searchmap:
+                Toast.makeText(getApplicationContext(),"Filter by user",Toast.LENGTH_SHORT).show();
+                if(mSearchView.getVisibility() == View.VISIBLE){
+                    mSearchView.setVisibility(View.GONE);
+                }
+                else {
+                    mSearchView.setVisibility(View.VISIBLE);
+                }
+                return true;
+            case R.id.action_refresh_map:
+                Toast.makeText(getApplicationContext(),"Refresh Done!",Toast.LENGTH_SHORT).show();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void createMessage(View v){
+        // Setting Visibility
+        if(imgButton_location.getVisibility() == View.GONE){
+            imgButton_location.setVisibility(View.VISIBLE);
+            imgButton_location_tag.setVisibility(View.VISIBLE);
+            imgButton_no_location.setVisibility(View.VISIBLE);
+            imgButton_no_location_tag.setVisibility(View.VISIBLE);
+            tv_message_type.setVisibility(View.VISIBLE);
+        }
+        else if (imgButton_location.getVisibility() == View.VISIBLE){
+            imgButton_location.setVisibility(View.GONE);
+            imgButton_location_tag.setVisibility(View.GONE);
+            imgButton_no_location.setVisibility(View.GONE);
+            imgButton_no_location_tag.setVisibility(View.GONE);
+            tv_message_type.setVisibility(View.GONE);
+        }
+    }
+
+    public void livevideomode(View v){
+        /*
+        Snackbar snackbar = Snackbar.make(v,"Message Type", Snackbar.LENGTH_INDEFINITE);
+        Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) snackbar.getView();
+        TextView textView = (TextView) layout.findViewById(android.support.design.R.id.snackbar_text);
+        textView.setVisibility(View.INVISIBLE);
+        LayoutInflater mInflater = (LayoutInflater) this.getSystemService(this.LAYOUT_INFLATER_SERVICE);
+        // Inflate our custom view
+        View snackView = mInflater.inflate(R.layout.snackbar_new_message, null);
+        // Configure the view
+        /*
+        ImageView imageView = (ImageView) snackView.findViewById(R.id.image);
+        imageView.setImageBitmap(image);
+        TextView textViewTop = (TextView) snackView.findViewById(R.id.text);
+        textViewTop.setText("abc");
+        textViewTop.setTextColor(Color.WHITE);
+        */
+        // Add the view to the Snackbar's layout
+        //layout.addView(snackView,20,20);
+        // Show the Snackbar
+        //snackbar.show();
+
     }
 
     /**

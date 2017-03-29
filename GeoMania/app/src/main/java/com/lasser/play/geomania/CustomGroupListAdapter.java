@@ -20,7 +20,7 @@ public class CustomGroupListAdapter extends ArrayAdapter<String> {
     private final Integer imgid;
 
     public CustomGroupListAdapter(Activity context, String[] itemTitle, String[] itemContent, Integer imgid) {
-        super(context, R.layout.my_list_group_gps, itemTitle);
+        super(context, R.layout.my_list_group_sensors, itemTitle);
         // TODO Auto-generated constructor stub
 
         this.context=context;
@@ -30,7 +30,7 @@ public class CustomGroupListAdapter extends ArrayAdapter<String> {
     }
     public View getView(int position, View view, ViewGroup parent) {
         LayoutInflater inflater=context.getLayoutInflater();
-        View rowView=inflater.inflate(R.layout.my_list_group_gps, null,true);
+        View rowView=inflater.inflate(R.layout.my_list_group_sensors, null,true);
         TextView txtTitle = (TextView) rowView.findViewById(R.id.listTextView_Title);
         ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
         TextView extratxt = (TextView) rowView.findViewById(R.id.listTextView_Content);

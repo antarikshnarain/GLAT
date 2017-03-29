@@ -18,4 +18,8 @@
     <string name="title_activity_profile_page">My Profile</string>
     <string name="title_activity_maps">Map</string>
     <string name="google_maps_key">AIzaSyABrDy5ynGYcqvJVN7nYMHgf-Uf8mw3TY0</string>
+
+    <string name="title_activity_camera_object_generator">CameraObjectGenerator</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

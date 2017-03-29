@@ -4,7 +4,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.hardware.camera2.CameraAccessException;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.EditText;
@@ -15,6 +21,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.lasser.play.geomania.AsyncJava.URLDataHash;
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
@@ -22,7 +29,10 @@ import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 public class UserProfile extends Activity{
@@ -32,6 +42,8 @@ public class UserProfile extends Activity{
     EditText username,userphoneno;
     SharedPreferences sharedPref;
     String myOTP = "";
+    int TAKE_PICTURE = 101;
+
     public static UserProfile instance() {
         return inst;
     }
@@ -48,10 +60,11 @@ public class UserProfile extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //
+        //*
         Intent i = new Intent().setClass(this,MapsActivity.class);
         startActivity(i);
         //
+
         setContentView(R.layout.activity_user_profile);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -78,20 +91,30 @@ public class UserProfile extends Activity{
         Log.d("MYAPP","ReceivedPro:"+smsAddress+"\n"+smsBody);
         tv.setText("ReceivedPro:"+smsAddress+"\n"+smsBody);
     }
+
     public void checkLogin(View v){
         String mname = username.getText().toString();
         String mphone = userphoneno.getText().toString();
         if (mname != "" && mphone != ""){
-            HashMap<String,String> hashMap = new HashMap<String,String>();
-            hashMap.put("name",mname);
-            hashMap.put("phone",mphone);
+            HashMap<String,Object> hashMap = new HashMap<String,Object>();
+            String abc[]={"hello","bye"};
+            hashMap.put("ABC",abc);
+            //hashMap.put("name",mname);
+            //hashMap.put("phone",mphone);
+            //Attaching a file
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory()+"/test.jpg",options);
             URLDataHash mydata = new URLDataHash();
             mydata.url="192.168.43.231";
-            mydata.apicall="user/signup";
+            mydata.apicall="imageTest";//"user/signup";
             mydata.hashMap=hashMap;
+            mydata.attachFile=Environment.getExternalStorageDirectory()+"/test.jpg";
+         //   mydata.attachFile=Environment.getExternalStorageDirectory()+"/GeoMania/Test 1.csv";
             try {
                 JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
-                Log.d("MYAPP",data.toString());
+                Toast.makeText(getApplicationContext(),"Data Send to Server!",Toast.LENGTH_SHORT).show();
+                //Log.d("MYAPP",data.toString());
                 try {
                     tv.setText(data.getString("status"));
                     if (data.getString("status").equals("success")) {
@@ -144,7 +167,7 @@ public class UserProfile extends Activity{
     }
     public void otpverify(View v){
         EditText uotp = (EditText) findViewById(R.id.otp);
-        HashMap<String,String> hashMap = new HashMap<String,String>();
+        HashMap<String,Object> hashMap = new HashMap<String,Object>();
         hashMap.put("phone",userphoneno.getText().toString());
         URLDataHash mydata = new URLDataHash();
         mydata.url="192.168.43.231";
