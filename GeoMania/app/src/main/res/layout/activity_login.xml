@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context="com.lasser.play.geomania.Login">
     <EditText
         android:layout_width="match_parent"
@@ -44,17 +43,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/button2"
-        android:background="#f98d11"
+        android:background="#a1f98d11"
         android:onClick="otpverify"
         android:textColor="#ffffff"
         android:layout_alignTop="@+id/userotp"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"/>
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        app:srcCompat="@drawable/location_tag"
+        android:src="@drawable/location_tag"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
@@ -62,12 +63,13 @@
         android:id="@+id/user_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
         android:clickable="true"
         app:fabSize="normal"
         android:onClick="checkLogin"
-        android:src="@android:drawable/ic_lock_power_off" />
+        android:src="@android:drawable/ic_lock_power_off"
+        android:layout_below="@+id/button2"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp" />
 
 
 </RelativeLayout>

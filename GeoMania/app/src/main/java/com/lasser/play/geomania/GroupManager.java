@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static com.lasser.play.geomania.GroupView.MyPREFERENCES;
 import static org.json.JSONObject.NULL;
 
 public class GroupManager extends AppCompatActivity {
@@ -43,29 +42,22 @@ public class GroupManager extends AppCompatActivity {
     ListView listview1;
     EditText groupName;
 
+    String group_name;
+    String group_icon;
     private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Log.d("BL","Before layout");
-
+        Intent intent = getIntent();
+        group_name = intent.getStringExtra("title");
+        group_icon = intent.getStringExtra("icon");
         setContentView(R.layout.activity_group_manager);
      /*   Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 */
-        Log.d("AL","After layout");
-
-        //setContentView(R.layout.content_display_contacts);
-
         listview = (ListView) findViewById(R.id.contactsView);
 
         listview1 =(ListView) findViewById(R.id.membersView);
-
-        textView =(TextView) findViewById(R.id.response);
-
-
-
 
         try {
             showContacts();
@@ -217,11 +209,10 @@ public class GroupManager extends AppCompatActivity {
 
 
                 String response = data.toString();
-                textView = (TextView) findViewById(R.id.response);
 
                 if(response==NULL)
                 {
-                    textView.setText("NULL object");
+                    //textView.setText("NULL object");
                 }
                 else {
                     //textView.setText(response);

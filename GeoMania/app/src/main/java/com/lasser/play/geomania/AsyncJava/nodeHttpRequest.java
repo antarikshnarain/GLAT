@@ -84,9 +84,9 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
             return myobj;
 
         } catch (Exception e) {
-            Toast.makeText(context,"Server Not Found",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context,"Server Not Found",Toast.LENGTH_SHORT).show();
             e.printStackTrace();
-            return new JSONObject();
+            return null;
         }
 
     }

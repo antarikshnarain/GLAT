@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.lasser.play.geomania.AsyncJava.GpsData;
 import com.lasser.play.geomania.AsyncJava.SensorData;
+import com.lasser.play.geomania.ListAdapter.CustomGroupListAdapter_SensorList;
 
 import java.util.ArrayList;
 

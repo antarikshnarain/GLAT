@@ -1,13 +1,17 @@
 package com.lasser.play.geomania;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.EditText;
@@ -28,8 +32,6 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
-
-import static com.lasser.play.geomania.GroupView.MyPREFERENCES;
 
 public class Login extends Activity{
 
@@ -57,36 +59,50 @@ public class Login extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //*
-        //Intent i = new Intent().setClass(this,MapsActivity.class);
-        //startActivity(i);
-        //
         setContentView(R.layout.activity_login);
         loginFlag = false;
         username = (EditText) findViewById(R.id.username);
         userphoneno = (EditText) findViewById(R.id.phoneno);
         userotp = (EditText) findViewById(R.id.userotp);
-        sharedPref = getSharedPreferences("userdata",Context.MODE_PRIVATE);
+        sharedPref = getSharedPreferences("userdata", Context.MODE_PRIVATE);
         String auto_name = sharedPref.getString("name", "");
         String auto_phone = sharedPref.getString("phone", "");
         String auto_token = sharedPref.getString("token", "");
-        intent_group_view = new Intent().setClass(this,MapsActivity.class);
+        intent_group_view = new Intent().setClass(this,GroupView.class);
+
         if(!auto_name.equals("") && !auto_phone.equals("") && !auto_token.equals("")){
             Toast.makeText(this,"Auto Login Successful!",Toast.LENGTH_SHORT).show();
             startActivity(intent_group_view);
         }
+        else if(!auto_name.equals("")  && !auto_phone.equals("")){
+            username.setText(auto_name);
+            userphoneno.setText(auto_phone);
+        }
+        if(checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 201);
+        }
         //TelephonyManager telephonyManager = (TelephonyManager) this.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
         //String mPhoneNo = telephonyManager.getSimSerialNumber();
     }
-    public void updateList(final String smsBody, final String smsAddress) {
-        //Toast.makeText(getApplicationContext(),"HEY",Toast.LENGTH_LONG).show();
+    private void askForPermission(String permission, Integer requestCode){
+        if(ContextCompat.checkSelfPermission(this,permission) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,new String[]{permission}, requestCode);
+        }
+    }
+    public void updateList(final String smsBody, final String smsAddress){
+        // Get Message from Message Service.
         Log.d("MYAPP","ReceivedPro:"+smsAddress+"\n"+smsBody);
         myOTP = smsBody;
         userotp.setText(myOTP);
-        //tv.setText("ReceivedPro:"+smsAddress+"\n"+smsBody);
+        try {
+            getAccessToken();
+        }
+        catch(JSONException e){
+            e.printStackTrace();
+        }
+        // CODE to be added to read message get otp and compare with server otp.
     }
     public void checkLogin(View v) throws JSONException{
-        //startActivity(intent_group_view);
         String mname = username.getText().toString();
         String mphone = userphoneno.getText().toString();
         if (mname != "" && mphone != ""){
@@ -98,31 +114,18 @@ public class Login extends Activity{
             mydata.apicall="user/sendotp";//"imageTest";
             mydata.jsonData=json;
             try {
+                // Requesting server for OTP.
                 JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
+                if(data == null){
+                    Toast.makeText(this,"Cannot Connect to the Server",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Toast.makeText(getApplicationContext(),"Data Send to Server!",Toast.LENGTH_SHORT).show();
                 try {
                     if (data.getString("status").equals("success")) {
+                        // Stores OTP from server in serverOTP.
                         serverOTP = data.getJSONObject("resp").getString("otp");
                         Toast.makeText(this,"Server OTP: " + serverOTP, Toast.LENGTH_SHORT).show();
-                        /*
-                        if (CheckOtp(myOTP)) {
-                            mydata.apicall="user/otpverify";
-                            json.remove("name");
-                            JSONObject tokenData = new nodeHttpRequest(this).execute(mydata).get();
-                            if (tokenData.getString("status").equals("success")) {
-                                String mtoken = tokenData.getJSONObject("resp").getString("token");
-                                Toast.makeText(this,"TOKEN:"+ mtoken,Toast.LENGTH_SHORT).show();
-                                SharedPreferences.Editor editor = sharedPref.edit();
-                                editor.putString("username", mname);
-                                editor.putString("phoneno", mphone);
-                                editor.putString("token", mtoken);
-                                editor.commit();
-                                startActivity(intent_group_view);
-                            }
-                            else{
-                                Toast.makeText(this,"Didn't Receive Access Token from Server!",Toast.LENGTH_SHORT).show();
-                            }
-                        }*/
                     }
                     else {
                         Toast.makeText(this,"Error in Login Credentials",Toast.LENGTH_SHORT).show();
@@ -141,21 +144,25 @@ public class Login extends Activity{
         }
     }
     public boolean CheckOtp(String serverOtp){
-
         if (serverOtp.equals(myOTP)){
             return true;
         }
-        else{
-            Toast.makeText(this,"Error Login, Invaild OTP!",Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(this,"Error Login, Invaild OTP!",Toast.LENGTH_SHORT).show();
         return false;
     }
     public void otpverify(View v) throws JSONException{
         myOTP = userotp.getText().toString();
+        Log.d("MYAPP OTP", myOTP);
         // Override
-        if( myOTP.equals("0000")){
-
+        if( myOTP.equalsIgnoreCase("0000")){
+            startActivity(intent_group_view);
+            finish();
         }
+        else if (myOTP.length()>0){
+            getAccessToken();
+        }
+    }
+    private void getAccessToken() throws JSONException{
         if (CheckOtp(myOTP)) {
             try {
                 JSONObject json = new JSONObject();
@@ -165,6 +172,10 @@ public class Login extends Activity{
                 mydata.apicall = "user/login";//"imageTest";
                 mydata.jsonData = json;
                 JSONObject tokenData = new nodeHttpRequest(this).execute(mydata).get();
+                if(tokenData == null){
+                    Toast.makeText(this,"Cannot Connect to the Server",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (tokenData.getString("status").equals("success")) {
                     String mtoken = tokenData.getJSONObject("resp").getString("token");
                     Toast.makeText(this, "TOKEN:" + mtoken, Toast.LENGTH_SHORT).show();
@@ -176,6 +187,7 @@ public class Login extends Activity{
                     Log.d("MYAPP: phone",sharedPref.getString("phone",""));
                     Log.d("MYAPP: token", sharedPref.getString("token",""));
                     startActivity(intent_group_view);
+                    finish();
                 } else {
                     Toast.makeText(this, "Didn't Receive Access Token from Server!", Toast.LENGTH_SHORT).show();
                 }
@@ -187,34 +199,7 @@ public class Login extends Activity{
                 e.printStackTrace();
             }
         }
-        /*
-        EditText uotp = (EditText) findViewById(R.id.userotp);
-        JSONObject json = new JSONObject();
-        json.put("phone",userphoneno.getText().toString());
-        URLDataHash mydata = new URLDataHash();
-        mydata.url="192.168.43.231";
-        mydata.apicall="user/signup";
-        //mydata.hashMap=hashMap;
-        if(CheckOtp(uotp.getText().toString())) {
-            mydata.apicall = "user/otpverify";
-            try {
-                JSONObject tokenData = new nodeHttpRequest(this).execute(mydata).get();
-                try{
-                if (tokenData.getString("status").equals("success")) {
-                    //tv.setText(tokenData.getJSONObject("resp").getString("token"));
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("username", username.getText().toString());
-                    editor.putString("phoneno", userphoneno.getText().toString());
-                    editor.putString("token", tokenData.getJSONObject("resp").getString("token"));
-                    editor.commit();
-                }}
-                catch(JSONException e){}
-            }
-            catch (InterruptedException e){}
-            catch (ExecutionException e){}
-        }*/
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -236,7 +221,16 @@ public class Login extends Activity{
 
         return super.onOptionsItemSelected(item);
     }
+    @Override
+    public void onRequestPermissionsResult (int requestCode, String permission[], int[] grantResults){
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
 
+        }
+        else{
+            Toast.makeText(this,"Permission Denied", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
     /**
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.

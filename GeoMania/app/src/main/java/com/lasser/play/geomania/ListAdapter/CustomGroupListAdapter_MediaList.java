@@ -1,4 +1,4 @@
-package com.lasser.play.geomania;
+package com.lasser.play.geomania.ListAdapter;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.lasser.play.geomania.R;
 
 import java.util.ArrayList;
 

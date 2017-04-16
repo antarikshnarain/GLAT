@@ -26,6 +26,7 @@
         android:layout_alignParentRight="true"
         app:layout_anchor="@+id/showGroups"
         app:layout_anchorGravity="bottom|right"
+        android:onClick="addGroup"
         android:src="@android:drawable/ic_input_add"
         />
 

@@ -12,7 +12,6 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Permissions For Sensor GPS Data -->
-    <uses-permission android:name="android.permission.BODY_SENSORS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.LOCATION_HARDWARE" />
@@ -35,7 +34,7 @@
         <activity
             android:name=".Login"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme.ActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -84,9 +83,15 @@
             android:name=".LocationMessage"
             android:label="@string/title_activity_location_message"
             android:theme="@style/AppTheme.ActionBar" />
-        <activity android:name=".GroupView" />
-        <activity android:name=".EditProfile" />
-        <activity android:name=".GroupManager"></activity>
+        <activity android:name=".GroupView"
+            android:label="@string/title_activity_group_view"
+            android:theme="@style/AppTheme.ActionBar"/>
+        <activity android:name=".EditProfile"
+            android:label="@string/title_activity_edit_profile"
+            android:theme="@style/AppTheme.ActionBar"/>
+        <activity android:name=".GroupManager"
+            android:label="@string/title_activity_group_manager"
+            android:theme="@style/AppTheme.ActionBar"></activity>
     </application>
 
 </manifest>

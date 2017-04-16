@@ -17,6 +17,9 @@
     </string>
     <string name="title_activity_sensor_page">My Sensors</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_group_view">Group View</string>
+    <string name="title_activity_edit_profile">Edit Profile</string>
+    <string name="title_activity_group_manager">Group Manager</string>
     <string name="google_maps_key">AIzaSyABrDy5ynGYcqvJVN7nYMHgf-Uf8mw3TY0</string>
 
     <string name="title_activity_camera_object_generator">CameraObjectGenerator</string>

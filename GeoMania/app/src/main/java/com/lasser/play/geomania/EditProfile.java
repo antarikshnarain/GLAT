@@ -18,7 +18,6 @@ import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
-import static com.lasser.play.geomania.GroupView.MyPREFERENCES;
 import static org.json.JSONObject.NULL;
 
 public class EditProfile extends AppCompatActivity {
@@ -33,7 +32,7 @@ public class EditProfile extends AppCompatActivity {
 
         editText=(EditText) findViewById(R.id.editName);
 
-        SharedPreferences phoneDetails = getSharedPreferences(MyPREFERENCES, MODE_PRIVATE);
+        SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
 
         final String nameValue = phoneDetails.getString("NameKey", "");
 
@@ -56,12 +55,12 @@ public class EditProfile extends AppCompatActivity {
 
 
 
-                SharedPreferences sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                SharedPreferences sharedpreferences = getSharedPreferences("userdata", Context.MODE_PRIVATE);
 
 
                 String newName=editText.getText().toString();
 
-                SharedPreferences phoneDetails = getSharedPreferences(MyPREFERENCES, MODE_PRIVATE);
+                SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
 
                 String PhoneValue = phoneDetails.getString("PhoneKey", "");
                 String TokenValue = phoneDetails.getString("TokenKey", "");
