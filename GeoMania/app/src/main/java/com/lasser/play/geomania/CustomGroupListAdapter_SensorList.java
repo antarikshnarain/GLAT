@@ -12,14 +12,14 @@ import android.widget.TextView;
  * Created by antar on 06-Feb-17.
  */
 
-public class CustomGroupListAdapter extends ArrayAdapter<String> {
+public class CustomGroupListAdapter_SensorList extends ArrayAdapter<String> {
 
     private final Activity context;
     private final String[] itemTitle;
     private final String[] itemContent;
     private final Integer imgid;
 
-    public CustomGroupListAdapter(Activity context, String[] itemTitle, String[] itemContent, Integer imgid) {
+    public CustomGroupListAdapter_SensorList(Activity context, String[] itemTitle, String[] itemContent, Integer imgid) {
         super(context, R.layout.my_list_group_sensors, itemTitle);
         // TODO Auto-generated constructor stub
 

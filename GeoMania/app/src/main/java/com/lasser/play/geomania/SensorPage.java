@@ -19,10 +19,10 @@ import com.lasser.play.geomania.AsyncJava.SensorData;
 
 import java.util.ArrayList;
 
-public class ProfilePage extends AppCompatActivity{
+public class SensorPage extends AppCompatActivity{
 
     ArrayList<String> list = new ArrayList<String>();
-    CustomGroupListAdapter adapter;
+    CustomGroupListAdapter_SensorList adapter;
     String[] itemTitle={"Accelerometer","Gyroscope","Magnetic","Pressure","Proximity","Location"};
     String[] itemContent=new String[6];
     ListView myList;
@@ -40,7 +40,7 @@ public class ProfilePage extends AppCompatActivity{
         }
         sensorData = new SensorData(this);
         gpsData = new GpsData(this);
-        adapter = new CustomGroupListAdapter(this,itemTitle,itemContent,R.drawable.ic_launcher);
+        adapter = new CustomGroupListAdapter_SensorList(this,itemTitle,itemContent,R.drawable.ic_launcher);
         myList = (ListView) findViewById(R.id.groupListView);
         myList.setAdapter(adapter);
         myList.setOnItemClickListener(new AdapterView.OnItemClickListener() {

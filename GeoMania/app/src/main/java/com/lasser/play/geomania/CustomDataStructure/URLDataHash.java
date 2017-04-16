@@ -1,9 +1,12 @@
-package com.lasser.play.geomania.AsyncJava;
+package com.lasser.play.geomania.CustomDataStructure;
 
 import android.graphics.Bitmap;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * Created by antar on 05-Feb-17.
@@ -12,12 +15,10 @@ import java.util.HashMap;
 public class URLDataHash {
     public String url;
     public String apicall;
-    public HashMap<String,Object> hashMap;
-    public String attachFile;
+    public JSONObject jsonData;
 
     public URLDataHash(){
         url = apicall = "";
-        attachFile = null;
-        hashMap = null;
+        jsonData = new JSONObject();
     }
 }

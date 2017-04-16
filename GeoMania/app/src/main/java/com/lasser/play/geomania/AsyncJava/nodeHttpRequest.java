@@ -3,18 +3,18 @@ package com.lasser.play.geomania.AsyncJava;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Path;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,8 +25,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by antar on 05-Feb-17.
@@ -52,32 +52,11 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
         Organizing data from mydata
          */
         String link="http://"+mydata[0].url+":8080"+"/"+mydata[0].apicall;
-        // Convert Hash Map to JSON Object
-        JSONObject jsonobj = new JSONObject();
-        // NOTE: Nested JSON is possible
-        for (Map.Entry<String, Object> entry : mydata[0].hashMap.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            try{
-                jsonobj.put(key,value);
-            }
-            catch (JSONException ex){
-                ex.printStackTrace();
-            }
-        }
-        if(mydata[0].attachFile != null){
-            try {
-                jsonobj.put("File", getStringFromFile(mydata[0].attachFile));
-            }
-            catch (JSONException e){
-                e.printStackTrace();
-            }
-        }
         // Sending data over HTTP
         BufferedReader bufferedReader;
         String result;
         try {
-            String message = jsonobj.toString();
+            String message = mydata[0].jsonData.toString();
             URL url = new URL(link);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setReadTimeout(10000);
@@ -105,6 +84,7 @@ public class nodeHttpRequest extends AsyncTask<URLDataHash, Void, JSONObject> {
             return myobj;
 
         } catch (Exception e) {
+            Toast.makeText(context,"Server Not Found",Toast.LENGTH_SHORT).show();
             e.printStackTrace();
             return new JSONObject();
         }

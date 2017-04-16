@@ -4,13 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
-import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.lasser.play.geomania.UserProfile;
+import com.lasser.play.geomania.Login;
 
 /**
  * Created by antar on 04-Feb-17.
@@ -34,7 +31,7 @@ public class IncomingSms extends BroadcastReceiver {
             }
             Log.d("MYAPP","Live Cap:"+smsAddress);
             //this will update the UI with message
-            UserProfile inst = UserProfile.instance();
+            Login inst = Login.instance();
             inst.updateList(smsBody,smsAddress);
         }
     }

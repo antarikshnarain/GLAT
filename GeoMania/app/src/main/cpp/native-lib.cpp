@@ -3,7 +3,7 @@
 
 extern "C"
 jstring
-Java_com_lasser_play_geomania_UserProfile_stringFromJNI(
+Java_com_lasser_play_geomania_Login_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
     std::string hello = "Hello from C++";

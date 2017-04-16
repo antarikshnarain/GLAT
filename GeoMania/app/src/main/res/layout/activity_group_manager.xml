@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.lasser.play.geomania.GroupManager">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        android:id="@+id/appBarLayout">
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@android:drawable/btn_star"
+        app:srcCompat="@android:drawable/ic_dialog_email" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:id="@+id/contactsView"
+        android:layout_marginBottom="44dp"
+        android:layout_above="@+id/membersView"
+        android:layout_alignParentStart="true" />
+
+    <ListView
+        android:id="@+id/membersView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/groupName"
+        android:layout_alignBottom="@+id/groupName"
+
+        android:layout_marginStart="16dp"
+        android:layout_toEndOf="@+id/response"
+        android:text="TextView"
+        android:textAppearance="@style/TextAppearance.AppCompat.Button"
+        tools:text="GroupName: " />
+
+    <EditText
+        android:id="@+id/groupName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="Name"
+        android:layout_above="@+id/contactsView"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="43dp" />
+
+    <TextView
+        android:id="@+id/response"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/appBarLayout"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GROUP MANAGER"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.SearchResult.Title"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>

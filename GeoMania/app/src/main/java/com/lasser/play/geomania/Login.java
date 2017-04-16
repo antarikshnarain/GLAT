@@ -6,11 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.camera2.CameraAccessException;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.EditText;
@@ -23,28 +20,27 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.lasser.play.geomania.AsyncJava.URLDataHash;
+import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-public class UserProfile extends Activity{
+import static com.lasser.play.geomania.GroupView.MyPREFERENCES;
 
-    private static UserProfile inst;
-    TextView tv;
-    EditText username,userphoneno;
+public class Login extends Activity{
+
+    private static Login inst;
+    EditText username,userphoneno, userotp;
     SharedPreferences sharedPref;
-    String myOTP = "";
-    int TAKE_PICTURE = 101;
+    String myOTP = "", serverOTP = "";
+    boolean loginFlag;
+    Intent intent_group_view;
 
-    public static UserProfile instance() {
+    public static Login instance() {
         return inst;
     }
     @Override
@@ -53,93 +49,83 @@ public class UserProfile extends Activity{
         inst = this;
     }
     // Used to load the 'native-lib' library on application startup.
+    /*
     static {
         System.loadLibrary("native-lib");
     }
-
+    */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //*
-        Intent i = new Intent().setClass(this,MapsActivity.class);
-        startActivity(i);
+        //Intent i = new Intent().setClass(this,MapsActivity.class);
+        //startActivity(i);
         //
-
-        setContentView(R.layout.activity_user_profile);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        setContentView(R.layout.activity_login);
+        loginFlag = false;
         username = (EditText) findViewById(R.id.username);
         userphoneno = (EditText) findViewById(R.id.phoneno);
-        sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-        String mname = sharedPref.getString("username", "");
-        String mphone = sharedPref.getString("password", "");
-        tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
-        TelephonyManager telephonyManager = (TelephonyManager) this.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-        String mPhoneNo = telephonyManager.getSimSerialNumber();
-        tv.setText(mPhoneNo);
+        userotp = (EditText) findViewById(R.id.userotp);
+        sharedPref = getSharedPreferences("userdata",Context.MODE_PRIVATE);
+        String auto_name = sharedPref.getString("name", "");
+        String auto_phone = sharedPref.getString("phone", "");
+        String auto_token = sharedPref.getString("token", "");
+        intent_group_view = new Intent().setClass(this,MapsActivity.class);
+        if(!auto_name.equals("") && !auto_phone.equals("") && !auto_token.equals("")){
+            Toast.makeText(this,"Auto Login Successful!",Toast.LENGTH_SHORT).show();
+            startActivity(intent_group_view);
+        }
+        //TelephonyManager telephonyManager = (TelephonyManager) this.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+        //String mPhoneNo = telephonyManager.getSimSerialNumber();
     }
     public void updateList(final String smsBody, final String smsAddress) {
         //Toast.makeText(getApplicationContext(),"HEY",Toast.LENGTH_LONG).show();
         Log.d("MYAPP","ReceivedPro:"+smsAddress+"\n"+smsBody);
-        tv.setText("ReceivedPro:"+smsAddress+"\n"+smsBody);
+        myOTP = smsBody;
+        userotp.setText(myOTP);
+        //tv.setText("ReceivedPro:"+smsAddress+"\n"+smsBody);
     }
-
-    public void checkLogin(View v){
+    public void checkLogin(View v) throws JSONException{
+        //startActivity(intent_group_view);
         String mname = username.getText().toString();
         String mphone = userphoneno.getText().toString();
         if (mname != "" && mphone != ""){
-            HashMap<String,Object> hashMap = new HashMap<String,Object>();
-            String abc[]={"hello","bye"};
-            hashMap.put("ABC",abc);
-            //hashMap.put("name",mname);
-            //hashMap.put("phone",mphone);
-            //Attaching a file
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory()+"/test.jpg",options);
+            JSONObject json = new JSONObject();
+            json.put("name",mname);
+            json.put("phone",mphone);
             URLDataHash mydata = new URLDataHash();
             mydata.url="192.168.43.231";
-            mydata.apicall="imageTest";//"user/signup";
-            mydata.hashMap=hashMap;
-            mydata.attachFile=Environment.getExternalStorageDirectory()+"/test.jpg";
-         //   mydata.attachFile=Environment.getExternalStorageDirectory()+"/GeoMania/Test 1.csv";
+            mydata.apicall="user/sendotp";//"imageTest";
+            mydata.jsonData=json;
             try {
                 JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
                 Toast.makeText(getApplicationContext(),"Data Send to Server!",Toast.LENGTH_SHORT).show();
-                //Log.d("MYAPP",data.toString());
                 try {
-                    tv.setText(data.getString("status"));
                     if (data.getString("status").equals("success")) {
-                        tv.setText(data.getJSONObject("resp").getString("otp"));
-                        myOTP = data.getJSONObject("resp").getString("otp");
+                        serverOTP = data.getJSONObject("resp").getString("otp");
+                        Toast.makeText(this,"Server OTP: " + serverOTP, Toast.LENGTH_SHORT).show();
                         /*
-                        if (CheckOtp(data.getJSONObject("resp").getString("otp"))) {
+                        if (CheckOtp(myOTP)) {
                             mydata.apicall="user/otpverify";
-                            hashMap.remove("name");
+                            json.remove("name");
                             JSONObject tokenData = new nodeHttpRequest(this).execute(mydata).get();
                             if (tokenData.getString("status").equals("success")) {
-                                tv.setText(tokenData.getJSONObject("resp").getString("token"));
+                                String mtoken = tokenData.getJSONObject("resp").getString("token");
+                                Toast.makeText(this,"TOKEN:"+ mtoken,Toast.LENGTH_SHORT).show();
                                 SharedPreferences.Editor editor = sharedPref.edit();
                                 editor.putString("username", mname);
                                 editor.putString("phoneno", mphone);
-                                editor.putString("token", tokenData.getJSONObject("resp").getString("token"));
+                                editor.putString("token", mtoken);
                                 editor.commit();
-                                Intent intent = new Intent();
-                                intent.setclass(this,ProfilePage.class);
-                                startActivity(intent);
+                                startActivity(intent_group_view);
+                            }
+                            else{
+                                Toast.makeText(this,"Didn't Receive Access Token from Server!",Toast.LENGTH_SHORT).show();
                             }
                         }*/
                     }
                     else {
-                        tv.setText(data.getString("err"));
+                        Toast.makeText(this,"Error in Login Credentials",Toast.LENGTH_SHORT).show();
                     }
                 }
                 catch (JSONException e){
@@ -147,13 +133,12 @@ public class UserProfile extends Activity{
                 }
             }
             catch (InterruptedException e){
-
+                e.printStackTrace();
             }
             catch (ExecutionException e){
-
+                e.printStackTrace();
             }
         }
-        // long highScore = sharedPref.getInt(getString(R.string.saved_high_score), defaultValue);
     }
     public boolean CheckOtp(String serverOtp){
 
@@ -161,25 +146,62 @@ public class UserProfile extends Activity{
             return true;
         }
         else{
-            tv.setText("Error Login, Invaild OTP!" + sharedPref.getString("OTP",""));
+            Toast.makeText(this,"Error Login, Invaild OTP!",Toast.LENGTH_SHORT).show();
         }
         return false;
     }
-    public void otpverify(View v){
-        EditText uotp = (EditText) findViewById(R.id.otp);
-        HashMap<String,Object> hashMap = new HashMap<String,Object>();
-        hashMap.put("phone",userphoneno.getText().toString());
+    public void otpverify(View v) throws JSONException{
+        myOTP = userotp.getText().toString();
+        // Override
+        if( myOTP.equals("0000")){
+
+        }
+        if (CheckOtp(myOTP)) {
+            try {
+                JSONObject json = new JSONObject();
+                json.put("phone", userphoneno.getText().toString());
+                URLDataHash mydata = new URLDataHash();
+                mydata.url = "192.168.43.231";
+                mydata.apicall = "user/login";//"imageTest";
+                mydata.jsonData = json;
+                JSONObject tokenData = new nodeHttpRequest(this).execute(mydata).get();
+                if (tokenData.getString("status").equals("success")) {
+                    String mtoken = tokenData.getJSONObject("resp").getString("token");
+                    Toast.makeText(this, "TOKEN:" + mtoken, Toast.LENGTH_SHORT).show();
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putString("name", username.getText().toString());
+                    editor.putString("phone", userphoneno.getText().toString());
+                    editor.putString("token", mtoken);
+                    editor.commit();
+                    Log.d("MYAPP: phone",sharedPref.getString("phone",""));
+                    Log.d("MYAPP: token", sharedPref.getString("token",""));
+                    startActivity(intent_group_view);
+                } else {
+                    Toast.makeText(this, "Didn't Receive Access Token from Server!", Toast.LENGTH_SHORT).show();
+                }
+            }
+            catch(InterruptedException e){
+                e.printStackTrace();
+            }
+            catch(ExecutionException e){
+                e.printStackTrace();
+            }
+        }
+        /*
+        EditText uotp = (EditText) findViewById(R.id.userotp);
+        JSONObject json = new JSONObject();
+        json.put("phone",userphoneno.getText().toString());
         URLDataHash mydata = new URLDataHash();
         mydata.url="192.168.43.231";
         mydata.apicall="user/signup";
-        mydata.hashMap=hashMap;
+        //mydata.hashMap=hashMap;
         if(CheckOtp(uotp.getText().toString())) {
             mydata.apicall = "user/otpverify";
             try {
                 JSONObject tokenData = new nodeHttpRequest(this).execute(mydata).get();
                 try{
                 if (tokenData.getString("status").equals("success")) {
-                    tv.setText(tokenData.getJSONObject("resp").getString("token"));
+                    //tv.setText(tokenData.getJSONObject("resp").getString("token"));
                     SharedPreferences.Editor editor = sharedPref.edit();
                     editor.putString("username", username.getText().toString());
                     editor.putString("phoneno", userphoneno.getText().toString());
@@ -190,7 +212,7 @@ public class UserProfile extends Activity{
             }
             catch (InterruptedException e){}
             catch (ExecutionException e){}
-        }
+        }*/
     }
 
     @Override

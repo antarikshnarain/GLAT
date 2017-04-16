@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.lasser.play.geomania.GroupView">
+
+    <ListView
+        android:id="@+id/showGroups"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/groupsearchview"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/addGroupButton"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_gravity="top|left"
+        android:clickable="true"
+        app:fabSize="normal"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        app:layout_anchor="@+id/showGroups"
+        app:layout_anchorGravity="bottom|right"
+        android:src="@android:drawable/ic_input_add"
+        />
+
+    <SearchView
+        android:id="@+id/groupsearchview"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:visibility="gone"/>
+</RelativeLayout>

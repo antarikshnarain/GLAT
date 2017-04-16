@@ -55,8 +55,9 @@
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/location_original"
         android:layout_below="@+id/livemode"
-        android:layout_alignParentStart="true"
         android:background="@null"
+        android:layout_alignParentStart="true"
+        android:onClick="message_location"
         android:visibility="gone"/>
 
     <ImageButton
@@ -68,6 +69,7 @@
         android:layout_alignStart="@+id/imageButton_no_location_tag"
         android:layout_marginStart="10dp"
         android:background="@null"
+        android:onClick="message_location_tag"
         android:visibility="gone"/>
 
     <ImageButton
@@ -76,8 +78,9 @@
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/no_location_original"
         android:layout_above="@+id/addMessage"
-        android:layout_toEndOf="@+id/searchView"
         android:background="@null"
+        android:layout_toEndOf="@+id/searchView"
+        android:onClick="message_no_location"
         android:visibility="gone"/>
 
     <ImageButton
@@ -85,9 +88,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/no_location_view_tag_original"
+        android:background="@null"
         android:layout_alignTop="@+id/imageButton_no_location"
         android:layout_alignParentEnd="true"
-        android:background="@null"
+        android:onClick="message_no_location_tag"
         android:visibility="gone"/>
 
     <TextView

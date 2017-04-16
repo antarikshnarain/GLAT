@@ -17,9 +17,13 @@ void readme();
 class ImageFeatures {
 	int minHessian = 400;
 public:
+	Mat image;
 	Mat mDescriptors;
 	vector<KeyPoint> mKeypoints;
+	ImageFeatures() {
+	}
 	ImageFeatures(Mat image) {
+		this->image = image;
 		// 1: Detect Keypoints using SURF Detector
 		Ptr<SURF> detector = SURF::create(minHessian);
 		detector->detect(image, mKeypoints);
@@ -28,30 +32,11 @@ public:
 	}
 };
 
-std::vector<Point2f> surfedImage(Mat object_image, Mat scene_image) {
+vector<Point2f> surfedImage(ImageFeatures object, ImageFeatures scene) {
 
-	ImageFeatures object = ImageFeatures(object_image);
-	ImageFeatures scene = ImageFeatures(scene_image);
-	/*
-	//-- Step 1: Detect the keypoints using SURF Detector
-	int minHessian = 400;
-	Ptr<SURF> detector = SURF::create(minHessian);
-	//SurfFeatureDetector detector(minHessian);
-
-	vector<KeyPoint> keypoints_object, keypoints_scene;
-	detector->detect(object_image, keypoints_object);
-	detector->detect(scene_image, keypoints_scene);
-
-	//-- Step 2: Calculate descriptors (feature vectors)
-
-	Mat descriptors_object, descriptors_scene;
-
-	detector->compute(object_image, keypoints_object, descriptors_object);
-	detector->compute(scene_image, keypoints_scene, descriptors_scene);
-	*/
 	//-- Step 3: Matching descriptor vectors using FLANN matcher
 	FlannBasedMatcher matcher;
-	std::vector< DMatch > matches;
+	vector< DMatch > matches;
 	matcher.match(object.mDescriptors, scene.mDescriptors, matches);
 
 	double max_dist = 0; double min_dist = 100;
@@ -68,7 +53,7 @@ std::vector<Point2f> surfedImage(Mat object_image, Mat scene_image) {
 	printf("-- Min dist : %f \n", min_dist);
 
 	//-- Draw only "good" matches (i.e. whose distance is less than 3*min_dist )
-	std::vector< DMatch > good_matches;
+	vector< DMatch > good_matches;
 
 	for (int i = 0; i < object.mDescriptors.rows; i++)
 	{
@@ -78,16 +63,15 @@ std::vector<Point2f> surfedImage(Mat object_image, Mat scene_image) {
 		}
 	}
 	Mat img_matches, object_key_image;
-	drawMatches(object_image, object.mKeypoints, scene_image, scene.mKeypoints,
-		good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
-		vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+	//drawMatches(object.image, object.mKeypoints, scene.image, scene.mKeypoints,
+	//	good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+	//	vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 	//drawKeypoints(img_object_gray, keypoints_object, object_key_image, Scalar::all(-1), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-	resize(img_matches, object_key_image, Size(640, 480));
-	imshow("Image Matches", object_key_image);
-	waitKey(0);
+	//imshow("Image Matches", object_key_image);
+	//waitKey(0);
 	//-- Localize the object
-	std::vector<Point2f> obj;
-	std::vector<Point2f> sce;
+	vector<Point2f> obj;
+	vector<Point2f> sce;
 
 	for (int i = 0; i < good_matches.size(); i++)
 	{
@@ -99,10 +83,10 @@ std::vector<Point2f> surfedImage(Mat object_image, Mat scene_image) {
 	Mat H = findHomography(obj, sce, CV_RANSAC);
 
 	//-- Get the corners from the image_1 ( the object to be "detected" )
-	std::vector<Point2f> obj_corners(4);
-	obj_corners[0] = cvPoint(0, 0); obj_corners[1] = cvPoint(object_image.cols, 0);
-	obj_corners[2] = cvPoint(object_image.cols, object_image.rows); obj_corners[3] = cvPoint(0, object_image.rows);
-	std::vector<Point2f> scene_corners(4);
+	vector<Point2f> obj_corners(4);
+	obj_corners[0] = cvPoint(0, 0); obj_corners[1] = cvPoint(object.image.cols, 0);
+	obj_corners[2] = cvPoint(object.image.cols, object.image.rows); obj_corners[3] = cvPoint(0, object.image.rows);
+	vector<Point2f> scene_corners(4);
 
 	perspectiveTransform(obj_corners, scene_corners, H);
 	cout << scene_corners;
@@ -119,44 +103,61 @@ std::vector<Point2f> surfedImage(Mat object_image, Mat scene_image) {
 }
 int main(int argc, char** argv)
 {
-	String basePath = "D:/Visual Studio 2015/Projects/OpenCVGo/OpenCVGo/sample_images/";
+	int i,j;
 	String basePath2 = "C:/Users/antar/Documents/GitHub/GLAT/OpenCV/ObjectDetectionAndTagging/ObjectDetectionAndTagging/Images/";
-	Mat img_object = imread(basePath2+"watch1.jpg");
-	Mat img_scene = imread(basePath2+"img1.jpg");
+	Mat img_object = imread(basePath2 + "chair01.png");
+	resize(img_object, img_object, Size(480, 640));
+	Mat img_scene;
 	Mat img_object_gray, img_scene_gray;
 	Mat bgr[3];
-	//resize(img_object, img_object, Size(640, 480));
-	//resize(img_scene, img_scene, Size(640, 480));
+	if (!img_object.data){
+		cout << " --(!) Error reading images " << endl; return -1;
+	}
+
+	// Generate Image features for object to detect
+	ImageFeatures object[4];
+	// Adding BGR Features
+	split(img_object, bgr);
+	for (i = 0; i < 3; i++) {
+		object[i] = ImageFeatures(bgr[i]);
+	}
+	// Adding GRAY Features
 	cvtColor(img_object, img_object_gray, CV_RGB2GRAY);
-	cvtColor(img_scene, img_scene_gray, CV_RGB2GRAY);
-	if (!img_object.data || !img_scene.data)
-	{
-		std::cout << " --(!) Error reading images " << std::endl; return -1;
+	object[3] = ImageFeatures(img_object_gray);
+
+	cout << "-----Object Features for each layer are ready----";
+	Scalar colorpalatte[4] = { Scalar(255,0,0),Scalar(0,255,0), Scalar(0,0,255), Scalar(230,120,150) };
+	vector<Point2f> scene_corners(4);
+	VideoCapture cap(0);
+	for (i = 0; i < 100; i++) {
+		cout << "\n\nProcessing Frame " << i << endl;
+		if (cap.isOpened() && cap.read(img_scene)) {
+			//img_scene = imread(basePath2 + "scene2.jpg");
+			// Generate Image features for object to detect
+			ImageFeatures scene;
+			// Adding BGR Features
+			/*
+			split(img_scene, bgr);
+			for (j = 0; j < 3; j++) {
+				//scene[j] = ImageFeatures(bgr[j]);
+			}*/
+			// Adding GRAY Features
+			cvtColor(img_scene, img_scene_gray, CV_RGB2GRAY);
+			scene = ImageFeatures(img_scene_gray);
+
+			for (j = 3; j < 4; j++) {
+				scene_corners = surfedImage(object[j], scene);
+				// Draw lines on scene image
+				line(img_scene, scene_corners[0], scene_corners[1], colorpalatte[j], 4);
+				line(img_scene, scene_corners[1], scene_corners[2], colorpalatte[j], 4);
+				line(img_scene, scene_corners[2], scene_corners[3], colorpalatte[j], 4);
+				line(img_scene, scene_corners[3], scene_corners[0], colorpalatte[j], 4);
+			}
+			imshow("Good Matches & Object detection", img_scene);
+			waitKey(1);
+		}
 	}
-	std::vector<Point2f> scene_corners(4);
-	scene_corners = surfedImage(img_object_gray, img_scene_gray);
-	line(img_scene, scene_corners[0], scene_corners[1], Scalar(0,255,0), 4);
-	line(img_scene, scene_corners[1], scene_corners[2], Scalar(0, 255, 0), 4);
-	line(img_scene, scene_corners[2], scene_corners[3], Scalar(0, 255, 0), 4);
-	line(img_scene, scene_corners[3], scene_corners[0], Scalar(0, 255, 0), 4);
-	resize(img_scene, img_scene, Size(640, 480));
-	imshow("Good Matches & Object detection", img_scene);
-	/*
-	Scalar colorpalatte[3] = { Scalar(255,0,0),Scalar(0,255,0), Scalar(0,0,255) };
-	for (int i = 0; i < 3; i++) {
-		split(img_object, bgr);
-		img_object_gray = bgr[i];
-		split(img_scene, bgr);
-		img_scene_gray = bgr[i];
-		scene_corners = surfedImage(img_object_gray, img_scene_gray);
-		// Draw lines on scene image
-		line(img_scene, scene_corners[0], scene_corners[1], colorpalatte[i], 4);
-		line(img_scene, scene_corners[1], scene_corners[2], colorpalatte[i], 4);
-		line(img_scene, scene_corners[2], scene_corners[3], colorpalatte[i], 4);
-		line(img_scene, scene_corners[3], scene_corners[0], colorpalatte[i], 4);
-		imshow("Good Matches & Object detection", img_scene);
-	}
-	*/
+
 	waitKey(0);
 	return 0;
 }
@@ -164,5 +165,5 @@ int main(int argc, char** argv)
 /** @function readme */
 void readme()
 {
-	std::cout << " Usage: ./SURF_descriptor <img1> <img2>" << std::endl;
+	cout << " Usage: ./SURF_descriptor <img1> <img2>" << endl;
 }

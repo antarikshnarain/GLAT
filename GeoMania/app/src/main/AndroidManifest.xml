@@ -33,7 +33,7 @@
             android:value="AIzaSyABrDy5ynGYcqvJVN7nYMHgf-Uf8mw3TY0" />
 
         <activity
-            android:name=".UserProfile"
+            android:name=".Login"
             android:label="@string/app_name"
             android:theme="@style/AppTheme">
             <intent-filter>
@@ -52,8 +52,8 @@
         </receiver>
 
         <activity
-            android:name=".ProfilePage"
-            android:label="@string/title_activity_profile_page"
+            android:name=".SensorPage"
+            android:label="@string/title_activity_sensor_page"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <!--
@@ -74,12 +74,19 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
-            android:theme="@style/AppTheme.ActionBar"/>
+            android:theme="@style/AppTheme.ActionBar" />
         <activity
             android:name=".CameraObjectGenerator"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_camera_object_generator"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".LocationMessage"
+            android:label="@string/title_activity_location_message"
+            android:theme="@style/AppTheme.ActionBar" />
+        <activity android:name=".GroupView" />
+        <activity android:name=".EditProfile" />
+        <activity android:name=".GroupManager"></activity>
     </application>
 
 </manifest>

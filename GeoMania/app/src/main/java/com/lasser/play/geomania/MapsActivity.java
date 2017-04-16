@@ -1,6 +1,7 @@
 package com.lasser.play.geomania;
 
 import android.*;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -44,6 +45,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.lasser.play.geomania.AsyncJava.GpsData;
+import com.lasser.play.geomania.CustomDataStructure.UserSendMessage;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -250,12 +252,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         getMenuInflater().inflate(R.menu.menu_group_map, menu);
         return true;
     }
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == 101) {
+            // Create Message
+            if (resultCode == 101) {
+                Toast.makeText(getApplicationContext(),"Message Send!",Toast.LENGTH_SHORT).show();
+                Log.d("MYAPP",data.getStringExtra("LocationMessageData"));
+            }
+            else{
+                Toast.makeText(getApplicationContext(),"Message Not Send!",Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_editgroup:
                 // About option clicked.
+                Intent intent_group_manager = new Intent().setClass(this,GroupManager.class);
+                startActivity(intent_group_manager);
                 Toast.makeText(getApplicationContext(),"Group Edit",Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.action_exitgroup:
@@ -304,6 +321,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void livevideomode(View v){
+        Intent i = new Intent().setClass(this,SensorPage.class);
+        startActivity(i);
         /*
         Snackbar snackbar = Snackbar.make(v,"Message Type", Snackbar.LENGTH_INDEFINITE);
         Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) snackbar.getView();
@@ -325,6 +344,58 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Show the Snackbar
         //snackbar.show();
 
+    }
+    public void message_location(View v){
+        Log.d("MYAPP","Message Location");
+        Intent intent = new Intent();
+        //Bundle b = new Bundle();
+        //UserSendMessage message = new UserSendMessage();
+        //message.gps_lati = gps_latitude;
+        //message.gps_longi = gps_longitude;
+        //message.type = 1;
+        //b.putSerializable("myobj",new UserSendMessage());
+        intent.setClass(this,LocationMessage.class);
+        //intent.putExtra("MapsData",b);
+        startActivityForResult(intent,101);
+    }
+    public void message_location_tag(View v){
+        Log.d("MYAPP","Message Location Tag");
+        Intent intent = new Intent();
+        Bundle b = new Bundle();
+        UserSendMessage message = new UserSendMessage();
+        message.gps_lati = gps_latitude;
+        message.gps_longi = gps_longitude;
+        message.type = 2;
+        b.putSerializable("myobj",new UserSendMessage());
+        intent.setClass(this,LocationMessage.class);
+        intent.putExtra("MapsData",b);
+        startActivityForResult(intent,101);
+    }
+    public void message_no_location(View v){
+        Log.d("MYAPP","Message No Location");
+        Intent intent = new Intent();
+        Bundle b = new Bundle();
+        UserSendMessage message = new UserSendMessage();
+        message.gps_lati = gps_latitude;
+        message.gps_longi = gps_longitude;
+        message.type = 3;
+        b.putSerializable("myobj",new UserSendMessage());
+        intent.setClass(this,LocationMessage.class);
+        intent.putExtra("MapsData",b);
+        startActivityForResult(intent,101);
+    }
+    public void message_no_location_tag(View v){
+        Log.d("MYAPP","Message No Location Tag");
+        Intent intent = new Intent();
+        Bundle b = new Bundle();
+        UserSendMessage message = new UserSendMessage();
+        message.gps_lati = gps_latitude;
+        message.gps_longi = gps_longitude;
+        message.type = 4;
+        b.putSerializable("myobj",new UserSendMessage());
+        intent.setClass(this,LocationMessage.class);
+        intent.putExtra("MapsData",b);
+        startActivityForResult(intent,101);
     }
 
     /**
