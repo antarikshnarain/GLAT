@@ -1,22 +1,28 @@
 package com.lasser.play.geomania;
 
-import android.*;
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -37,14 +43,20 @@ import java.util.concurrent.ExecutionException;
 import static org.json.JSONObject.NULL;
 
 public class GroupManager extends AppCompatActivity {
+    private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
     TextView textView;
     ListView listview;
     ListView listview1;
     EditText groupName;
-
+    ImageView groupIcon;
     String group_name;
     String group_icon;
-    private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
+
+    ProgressDialog progressDialog;
+
+    int GALLERY_IMAGE = 102;
+    private final int imgWidth = 60;
+    private final int imgHeight = 60;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,22 +67,73 @@ public class GroupManager extends AppCompatActivity {
      /*   Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 */
+        groupName = (EditText) findViewById(R.id.groupName);
         listview = (ListView) findViewById(R.id.contactsView);
-
-        listview1 =(ListView) findViewById(R.id.membersView);
-
-        try {
-            showContacts();
+        listview1 = (ListView) findViewById(R.id.membersView);
+        groupIcon = (ImageView) findViewById(R.id.image_group_icon);
+        progressDialog = new ProgressDialog(this);
+        groupName.setText(group_name);
+        if(group_icon.equals("") || group_icon.equals("null")){
+            groupIcon.setImageResource(R.mipmap.ic_launcher);
         }
-        catch (JSONException e){}
-
+        else{
+            groupIcon.setImageBitmap(resizeBitmap(group_icon));
+        }
+        try {
+            progressDialog.setTitle(":((())):");
+            progressDialog.setMessage("Retrieving Group Information ...");
+            progressDialog.show();
+            showContacts();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        progressDialog.dismiss();
         // getUserPhoneNumber();
-
-
     }
-
-    private void getUserPhoneNumber()
-    {
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode,resultCode,data);
+        if(requestCode == GALLERY_IMAGE){
+            // Gallery Images
+            if (resultCode == Activity.RESULT_OK){
+                Uri selectedImage = data.getData();
+                String filePath = getRealPathFromURI(selectedImage);
+                groupIcon.setImageBitmap(resizeBitmap(filePath));
+            }
+        }
+    }
+    public void changeGroupIcon(View v){
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent,"Select Images"),GALLERY_IMAGE);
+    }
+    public String getRealPathFromURI(Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        @SuppressWarnings("deprecation")
+        Cursor cursor = managedQuery(uri, projection, null, null, null);
+        int column_index = cursor
+                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
+    }
+    public Bitmap resizeBitmap(String filePath){
+        // Function to resize Bitmap from File for the Application
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+        int scaleFactor = 1;
+        if ((imgWidth > 0) || (imgHeight > 0)) {
+            scaleFactor = Math.max(photoW/imgWidth, photoH/imgHeight);
+        }
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        return BitmapFactory.decodeFile(filePath, bmOptions);
+    }
+    private void getUserPhoneNumber() {
 
         TelephonyManager tMgr = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
         String mPhoneNumber = tMgr.getLine1Number();
@@ -88,8 +151,7 @@ public class GroupManager extends AppCompatActivity {
         setContentView(lView);
     }
 
-    private JSONArray getContactNames() throws JSONException
-    {
+    private JSONArray getContactNames() throws JSONException {
 
         Cursor contacts = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         String aNameFromContacts[] = new String[contacts.getCount()];
@@ -99,25 +161,25 @@ public class GroupManager extends AppCompatActivity {
         int nameFieldColumnIndex = contacts.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
         int numberFieldColumnIndex = contacts.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
 
-        List<ContactsClass> contactObjects=new ArrayList<ContactsClass>();
+        List<ContactsClass> contactObjects = new ArrayList<ContactsClass>();
 
-        JSONArray returnContacts=new JSONArray();
-        while(contacts.moveToNext()) {
+        JSONArray returnContacts = new JSONArray();
+        while (contacts.moveToNext()) {
 
-            JSONObject currJsonContact=new JSONObject();
-            ContactsClass newcontactObject=new ContactsClass();
+            JSONObject currJsonContact = new JSONObject();
+            ContactsClass newcontactObject = new ContactsClass();
 
 
             String contactName = contacts.getString(nameFieldColumnIndex);
-            aNameFromContacts[i] =    contactName ;
-            contactName=contactName.replaceAll("'","\'");
-            currJsonContact.put("name",contactName);
+            aNameFromContacts[i] = contactName;
+            contactName = contactName.replaceAll("'", "\'");
+            currJsonContact.put("name", contactName);
 
 
             String number = contacts.getString(numberFieldColumnIndex);
-            aNumberFromContacts[i] =    number ;
-            number=number.replaceAll("'","\'");
-            currJsonContact.put("phone",number);
+            aNumberFromContacts[i] = number;
+            number = number.replaceAll("'", "\'");
+            currJsonContact.put("phone", number);
 
             i++;
 
@@ -130,18 +192,16 @@ public class GroupManager extends AppCompatActivity {
     }
 
 
-
     private void showContacts() throws JSONException {
         // Check the SDK version and whether the permission is already granted or not.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{android.Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CONTACTS);
             //After this point you wait for callback in onRequestPermissionsResult(int, String[], int[]) overriden method
-        }
-        else {
+        } else {
             // Android version is lesser than 6.0 or the permission is already granted.
             //String[] contacts = getContactNames();
 
-            JSONArray contactObjects=getContactNames();
+            JSONArray contactObjects = getContactNames();
 
             /*for(ContactsClass obj:contactObjects)
             {
@@ -165,17 +225,16 @@ public class GroupManager extends AppCompatActivity {
             Log.d("CONTACTS",contactString);
             */
 
-            groupName=(EditText) findViewById(R.id.groupName);
+            groupName = (EditText) findViewById(R.id.groupName);
 
-            final String gName=groupName.getText().toString();
-            SharedPreferences phoneDetails = getSharedPreferences("userdata",Context.MODE_PRIVATE);
+            final String gName = groupName.getText().toString();
+            SharedPreferences phoneDetails = getSharedPreferences("userdata", Context.MODE_PRIVATE);
 
             String PhoneValue = phoneDetails.getString("phone", "");
             String TokenValue = phoneDetails.getString("token", "");
-            Log.d("MYAPP: phone GM",phoneDetails.getString("phone",""));
-            Log.d("MYAPP: token GM", phoneDetails.getString("token",""));
+            Log.d("MYAPP: phone GM", phoneDetails.getString("phone", ""));
+            Log.d("MYAPP: token GM", phoneDetails.getString("token", ""));
             JSONObject requestMap = new JSONObject();
-
 
 
             try {
@@ -183,14 +242,11 @@ public class GroupManager extends AppCompatActivity {
 
                 requestMap.put("phone", PhoneValue);
                 requestMap.put("token", TokenValue);
-                requestMap.put("contacts",contactObjects);
-            }
-            catch (JSONException e){
+                requestMap.put("contacts", contactObjects);
+            } catch (JSONException e) {
                 e.printStackTrace();
 
             }
-
-
 
 
             Log.d("My OUTPUT", PhoneValue + " " + TokenValue);
@@ -200,186 +256,159 @@ public class GroupManager extends AppCompatActivity {
             URLDataHash mydata = new URLDataHash();
             mydata.url = "192.168.43.231";
             mydata.apicall = "user/contacts/view";
-            mydata.jsonData=requestMap;
+            mydata.jsonData = requestMap;
 
             try {
 
                 final JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
-                Log.d("MYAPP:", data.toString());
-
-
-                String response = data.toString();
-
-                if(response==NULL)
-                {
-                    //textView.setText("NULL object");
+                if(data == null){
+                    return;
                 }
-                else {
-                    //textView.setText(response);
-                    try {
-                        JSONArray members = data.getJSONArray("resp");
-                        JSONObject currentObj=new JSONObject();
-                        final JSONObject NumbersHash=new JSONObject();
-                        final ArrayList<String> membersGroup=new ArrayList<String>();
-                        for(int i=0;i<members.length();i++)
-                        {
-                            currentObj=members.getJSONObject(i);
-                            Log.d("MYAPP: Json Parse",currentObj.toString());
-                            membersGroup.add(currentObj.getString("dname"));
-                            NumbersHash.put(currentObj.getString("dname"),currentObj.getString("phone"));
+                //textView.setText(response);
+                try {
+                    JSONArray members = data.getJSONArray("resp");
+                    JSONObject currentObj = new JSONObject();
+                    final JSONObject NumbersHash = new JSONObject();
+                    final ArrayList<String> membersGroup = new ArrayList<String>();
+                    for (int i = 0; i < members.length(); i++) {
+                        currentObj = members.getJSONObject(i);
+                        Log.d("MYAPP: Json Parse", currentObj.toString());
+                        membersGroup.add(currentObj.getString("dname"));
+                        NumbersHash.put(currentObj.getString("dname"), currentObj.getString("phone"));
 
 
-                            Log.d("MYAPP: members group",membersGroup.toString());
-                        }
-                        String testString=new String();
-
-                        for(String curr:membersGroup)
-                            testString+=curr+",";
-
-
-                        Log.d("member length",""+ membersGroup.size());
-                        Log.d("Returned names",testString);
-
-                        final ArrayList<String> latestMembers=new ArrayList<String>();
-
-                        membersGroup.add("Praful");
-
-                        final ArrayAdapter adapter = new ArrayAdapter<String>(this,
-                                android.R.layout.simple_list_item_1,
-                                membersGroup);
-
-
-                        listview.setAdapter(adapter);
-
-
-                        final ArrayAdapter adaptermembers=new ArrayAdapter<String>(this,
-                                android.R.layout.simple_list_item_1,
-                                latestMembers);
-                        listview1.setAdapter(adaptermembers);
-
-
-                        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                                String item = ((TextView)view).getText().toString();
-                                membersGroup.remove(item);
-
-                                latestMembers.add(item);
-
-                                adapter.notifyDataSetChanged();
-                                adaptermembers.notifyDataSetChanged();
-                            }
-                        });
-
-                        listview1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                                String item = ((TextView)view).getText().toString();
-                                membersGroup.add(item);
-
-                                latestMembers.remove(item);
-
-                                adapter.notifyDataSetChanged();
-                                adaptermembers.notifyDataSetChanged();
-                            }
-                        });
-
-
-
-
-                        textView.setText("Memebers in the group");
-
-
-
-
-
-                        FloatingActionButton fab=(FloatingActionButton) findViewById(R.id.fab);
-
-                        fab.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-             /*   Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-
-
-
-                                groupName=(EditText) findViewById(R.id.groupName);
-
-                                final String gName=groupName.getText().toString();
-
-                                SharedPreferences phoneDetails = getSharedPreferences("userdata",Context.MODE_PRIVATE);
-
-                                String PhoneValue = phoneDetails.getString("phone", "");
-                                String TokenValue = phoneDetails.getString("token", "");
-
-                                ArrayList<String> latestNumbers=new ArrayList<>();
-
-                                try {
-                                    for (String current : latestMembers)
-                                        latestNumbers.add(NumbersHash.getString(current));
-                                }
-                                catch (JSONException e){}
-
-                                JSONObject requestMap=new JSONObject();
-
-                                try {
-                                    requestMap.put("phone", PhoneValue);
-                                    requestMap.put("token",TokenValue);
-                                    requestMap.put("gname",gName);
-                                    requestMap.put("mems",new JSONArray(latestNumbers));
-                                }
-                                catch(JSONException e){}
-
-                                URLDataHash mydata = new URLDataHash();
-                                mydata.url = "192.168.43.231";
-                                mydata.apicall = "group/add";
-                                mydata.jsonData=requestMap;
-
-                                try {
-
-                                    JSONObject data = new nodeHttpRequest(getApplicationContext()).execute(mydata).get();
-                                    Log.d("Response Group ",data.toString());
-                                }
-                                catch (InterruptedException e){
-                                    e.printStackTrace();
-
-                                }
-                                catch (ExecutionException e){
-                                    e.printStackTrace();
-
-                                }
-
-
-                                Toast.makeText(getApplicationContext(), "Group has been made",
-                                        Toast.LENGTH_LONG).show();
-
-                                Intent Intent = new Intent(view.getContext(), GroupManager.class);
-                                view.getContext().startActivity(Intent);
-                            }
-                        });
-
-
-
-
-
-
+                        Log.d("MYAPP: members group", membersGroup.toString());
                     }
-                    catch(JSONException e){}
+                    String testString = new String();
+
+                    for (String curr : membersGroup)
+                        testString += curr + ",";
 
 
+                    Log.d("member length", "" + membersGroup.size());
+                    Log.d("Returned names", testString);
+
+                    final ArrayList<String> latestMembers = new ArrayList<String>();
+
+                    membersGroup.add("Praful");
+
+                    final ArrayAdapter adapter = new ArrayAdapter<String>(this,
+                            android.R.layout.simple_list_item_1,
+                            membersGroup);
+
+
+                    listview.setAdapter(adapter);
+
+
+                    final ArrayAdapter adaptermembers = new ArrayAdapter<String>(this,
+                            android.R.layout.simple_list_item_1,
+                            latestMembers);
+                    listview1.setAdapter(adaptermembers);
+
+
+                    listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                            String item = ((TextView) view).getText().toString();
+                            membersGroup.remove(item);
+
+                            latestMembers.add(item);
+
+                            adapter.notifyDataSetChanged();
+                            adaptermembers.notifyDataSetChanged();
+                        }
+                    });
+
+                    listview1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                            String item = ((TextView) view).getText().toString();
+                            membersGroup.add(item);
+
+                            latestMembers.remove(item);
+
+                            adapter.notifyDataSetChanged();
+                            adaptermembers.notifyDataSetChanged();
+                        }
+                    });
+
+
+                    textView.setText("Memebers in the group");
+
+
+                    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
+                    fab.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+         /*   Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();*/
+
+
+                            groupName = (EditText) findViewById(R.id.groupName);
+
+                            final String gName = groupName.getText().toString();
+
+                            SharedPreferences phoneDetails = getSharedPreferences("userdata", Context.MODE_PRIVATE);
+
+                            String PhoneValue = phoneDetails.getString("phone", "");
+                            String TokenValue = phoneDetails.getString("token", "");
+
+                            ArrayList<String> latestNumbers = new ArrayList<>();
+
+                            try {
+                                for (String current : latestMembers)
+                                    latestNumbers.add(NumbersHash.getString(current));
+                            } catch (JSONException e) {
+                            }
+
+                            JSONObject requestMap = new JSONObject();
+
+                            try {
+                                requestMap.put("phone", PhoneValue);
+                                requestMap.put("token", TokenValue);
+                                requestMap.put("gname", gName);
+                                requestMap.put("mems", new JSONArray(latestNumbers));
+                            } catch (JSONException e) {
+                            }
+
+                            URLDataHash mydata = new URLDataHash();
+                            mydata.url = "192.168.43.231";
+                            mydata.apicall = "group/add";
+                            mydata.jsonData = requestMap;
+
+                            try {
+
+                                JSONObject data = new nodeHttpRequest(getApplicationContext()).execute(mydata).get();
+                                Log.d("Response Group ", data.toString());
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+
+                            }
+
+
+                            Toast.makeText(getApplicationContext(), "Group has been made",
+                                    Toast.LENGTH_LONG).show();
+
+                            Intent Intent = new Intent(view.getContext(), GroupManager.class);
+                            view.getContext().startActivity(Intent);
+                        }
+                    });
+
+
+                } catch (JSONException e) {
                 }
 
 
-            }
-
-
-            catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 e.printStackTrace();
 
-            }
-            catch (ExecutionException e){
+            } catch (ExecutionException e) {
                 e.printStackTrace();
 
             }
@@ -388,17 +417,17 @@ public class GroupManager extends AppCompatActivity {
     }
 
 
-
     @Override
-    public void onRequestPermissionsResult (int requestCode, String[] permissions,
-                                            int[] grantResults)  {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
         if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission is granted
 
                 try {
                     showContacts();
-                }catch (JSONException e){}
+                } catch (JSONException e) {
+                }
 
             } else {
                 Toast.makeText(this, "Until you grant the permission, we cannot display the names", Toast.LENGTH_SHORT).show();

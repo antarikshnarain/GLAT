@@ -1,13 +1,22 @@
 package com.lasser.play.geomania;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
@@ -20,16 +29,21 @@ import java.util.concurrent.ExecutionException;
 
 import static org.json.JSONObject.NULL;
 
-public class EditProfile extends AppCompatActivity {
+public class EditProfile extends Activity {
 
     EditText editText;
-    Button editButton;
+    ImageButton editButton;
+    ImageView profilePic;
 
+    int GALLERY_IMAGE = 102;
+    private final int imgWidth = 60;
+    private final int imgHeight = 60;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
+        profilePic = (ImageView) findViewById(R.id.imageView_profile_pic);
         editText=(EditText) findViewById(R.id.editName);
 
         SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
@@ -46,7 +60,7 @@ public class EditProfile extends AppCompatActivity {
 
          */
 
-        editButton=(Button) findViewById(R.id.submitButton);
+        editButton=(ImageButton) findViewById(R.id.sumbitButton);
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -62,8 +76,8 @@ public class EditProfile extends AppCompatActivity {
 
                 SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
 
-                String PhoneValue = phoneDetails.getString("PhoneKey", "");
-                String TokenValue = phoneDetails.getString("TokenKey", "");
+                String PhoneValue = phoneDetails.getString("phone", "");
+                String TokenValue = phoneDetails.getString("token", "");
 
                 JSONObject requestMap = new JSONObject();
 
@@ -115,15 +129,51 @@ public class EditProfile extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-
-
-
             }
         });
 
-
-
-
-
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode,resultCode,data);
+        if(requestCode == GALLERY_IMAGE){
+            // Gallery Images
+            if (resultCode == Activity.RESULT_OK){
+                Uri selectedImage = data.getData();
+                String filePath = getRealPathFromURI(selectedImage);
+                profilePic.setImageBitmap(resizeBitmap(filePath));
+            }
+        }
+    }
+    public void changeProfilePic(View v){
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent,"Select Images"),GALLERY_IMAGE);
+    }
+    public String getRealPathFromURI(Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        @SuppressWarnings("deprecation")
+        Cursor cursor = managedQuery(uri, projection, null, null, null);
+        int column_index = cursor
+                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
+    }
+    public Bitmap resizeBitmap(String filePath){
+        // Function to resize Bitmap from File for the Application
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+        int scaleFactor = 1;
+        if ((imgWidth > 0) || (imgHeight > 0)) {
+            scaleFactor = Math.max(photoW/imgWidth, photoH/imgHeight);
+        }
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        return BitmapFactory.decodeFile(filePath, bmOptions);
     }
 }

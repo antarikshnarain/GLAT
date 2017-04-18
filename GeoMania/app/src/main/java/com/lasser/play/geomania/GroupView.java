@@ -224,6 +224,8 @@ public class GroupView extends AppCompatActivity implements LocationListener {
     }
     public void addGroup(View v){
         Intent new_group_intent = new Intent().setClass(this,GroupManager.class);
+        new_group_intent.putExtra("title","");
+        new_group_intent.putExtra("icon","");
         startActivity(new_group_intent);
     }
     @Override

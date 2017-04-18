@@ -7,7 +7,7 @@
 using namespace std;
 using namespace cv;
 void detectAndDisplay(Mat frame);
-String face_cascade_name = "watch.xml";//"haarcascade_frontalface_default.xml";
+String face_cascade_name = "cascade_watch1.xml";//"haarcascade_frontalface_default.xml";
 String eyes_cascade_name = "haarcascade_eye_tree_eyeglasses.xml";
 String watch_cascade_name = "watch.xml";
 CascadeClassifier face_cascade;
@@ -17,20 +17,25 @@ int main(void)
 {
 	VideoCapture capture;
 	Mat frame;
-	String basePath = "D:/Visual Studio 2015/Projects/OpenCVGo/OpenCVGo/data/haarcascades/";
+	//String basePath = "D:/Visual Studio 2015/Projects/OpenCVGo/OpenCVGo/data/haarcascades/";
+	String basePath = "D:/VIT CHENNAI/CAPSTONE/CODE/OpenCV/MyCascades/";
 	//-- 1. Load the cascades
 
 	if (!eyes_cascade.load(basePath + eyes_cascade_name)) { printf("--(!)Error loading eyes cascade\n"); return -1; };
 	if (!face_cascade.load(basePath + face_cascade_name)) { printf("--(!)Error loading face cascade\n"); return -2; };
 	//-- 2. Read the video stream
-	String scene_img_path = "C:/Users/antar/Documents/GitHub/GLAT/OpenCV/ObjectDetectionAndTagging/ObjectDetectionAndTagging/Images/watch1.jpg";
+	/*
+	// Single Image
+	String scene_img_path = "C:/Users/antar/Documents/GitHub/GLAT/OpenCV/ObjectDetectionAndTagging/ObjectDetectionAndTagging/Images/img2.jpg";
 	Mat scene_image = imread(scene_img_path);
 	imshow("Image",scene_image);
 	waitKey(60);
+	resize(scene_image, scene_image, Size(640, 480));
 	detectAndDisplay(scene_image);
 	waitKey(60);
 	getchar();
-	/*
+	*/
+	// Video Stream
 	capture.open(0);
 	if (!capture.isOpened()) { printf("--(!)Error opening video capture\n"); return -1; }
 	capture.retrieve(frame);
@@ -45,7 +50,7 @@ int main(void)
 		detectAndDisplay(frame);
 		char c = (char)waitKey(1);
 		if (c == 27) { break; } // escape
-	}*/
+	}
 	return 0;
 }
 void detectAndDisplay(Mat frame)

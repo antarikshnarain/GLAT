@@ -88,7 +88,7 @@
             android:theme="@style/AppTheme.ActionBar"/>
         <activity android:name=".EditProfile"
             android:label="@string/title_activity_edit_profile"
-            android:theme="@style/AppTheme.ActionBar"/>
+            android:theme="@style/AppTheme.Dialog"/>
         <activity android:name=".GroupManager"
             android:label="@string/title_activity_group_manager"
             android:theme="@style/AppTheme.ActionBar"></activity>

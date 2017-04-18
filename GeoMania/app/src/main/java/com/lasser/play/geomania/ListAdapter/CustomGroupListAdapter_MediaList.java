@@ -27,7 +27,7 @@ public class CustomGroupListAdapter_MediaList extends ArrayAdapter<String> {
     private final int imgWidth = 200;
     private final int imgHeight = 200;
     public CustomGroupListAdapter_MediaList(Activity context, ArrayList<String> itemTitle, ArrayList<String> imagePath) {
-        super(context, R.layout.my_list_group_sensors, itemTitle);
+        super(context, R.layout.my_list_media, itemTitle);
         // TODO Auto-generated constructor stub
         this.context=context;
         this.itemTitle=itemTitle;
