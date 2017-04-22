@@ -20,6 +20,10 @@
     <!-- Camera Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Location Service -->
+    <uses-feature android:name="android.hardware.location.gps" />
+    <uses-feature android:name="android.hardware.location.network" />
+
     <!-- GlobalData Class to access and store global variables among Activities -->
     <application
         android:allowBackup="true"
@@ -83,15 +87,19 @@
             android:name=".LocationMessage"
             android:label="@string/title_activity_location_message"
             android:theme="@style/AppTheme.ActionBar" />
-        <activity android:name=".GroupView"
+        <activity
+            android:name=".GroupView"
             android:label="@string/title_activity_group_view"
-            android:theme="@style/AppTheme.ActionBar"/>
-        <activity android:name=".EditProfile"
+            android:theme="@style/AppTheme.ActionBar" />
+        <activity
+            android:name=".EditProfile"
             android:label="@string/title_activity_edit_profile"
-            android:theme="@style/AppTheme.Dialog"/>
-        <activity android:name=".GroupManager"
+            android:theme="@style/AppTheme.Dialog" />
+        <activity
+            android:name=".GroupManager"
             android:label="@string/title_activity_group_manager"
-            android:theme="@style/AppTheme.ActionBar"></activity>
+            android:theme="@style/AppTheme.ActionBar" />
+        <activity android:name=".MessageViewFeed"></activity>
     </application>
 
 </manifest>

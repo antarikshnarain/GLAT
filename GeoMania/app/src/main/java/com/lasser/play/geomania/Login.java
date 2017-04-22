@@ -68,7 +68,7 @@ public class Login extends Activity{
         String auto_name = sharedPref.getString("name", "");
         String auto_phone = sharedPref.getString("phone", "");
         String auto_token = sharedPref.getString("token", "");
-        intent_group_view = new Intent().setClass(this,GroupView.class);
+        intent_group_view = new Intent().setClass(this,MapsActivity.class);
 
         if(!auto_name.equals("") && !auto_phone.equals("") && !auto_token.equals("")){
             Toast.makeText(this,"Auto Login Successful!",Toast.LENGTH_SHORT).show();
@@ -128,7 +128,7 @@ public class Login extends Activity{
                         Toast.makeText(this,"Server OTP: " + serverOTP, Toast.LENGTH_SHORT).show();
                     }
                     else {
-                        Toast.makeText(this,"Error in Login Credentials",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,"Error in Login Credentials" + data.getString("err"),Toast.LENGTH_SHORT).show();
                     }
                 }
                 catch (JSONException e){
@@ -189,7 +189,7 @@ public class Login extends Activity{
                     startActivity(intent_group_view);
                     finish();
                 } else {
-                    Toast.makeText(this, "Didn't Receive Access Token from Server!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Didn't Receive Access Token from Server!" +tokenData.getString("err"), Toast.LENGTH_SHORT).show();
                 }
             }
             catch(InterruptedException e){

@@ -146,8 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HaarCascadeDetection.cpp" />
-    <ClCompile Include="VideoCapture.cpp" />
+    <ClCompile Include="VideoSIFTKeypoints.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -48,7 +48,7 @@ public class EditProfile extends Activity {
 
         SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
 
-        final String nameValue = phoneDetails.getString("NameKey", "");
+        final String nameValue = phoneDetails.getString("name", "");
 
         editText.setText(nameValue);
 

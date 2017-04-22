@@ -15,10 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VideoCapture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HaarCascadeDetection.cpp">
+    <ClCompile Include="VideoSIFTKeypoints.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

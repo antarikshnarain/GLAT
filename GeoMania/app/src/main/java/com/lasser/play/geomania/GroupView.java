@@ -145,6 +145,8 @@ public class GroupView extends AppCompatActivity implements LocationListener {
                 else{
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
                 }
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
                 Criteria criteria = new Criteria();
                 criteria.setAccuracy(Criteria.ACCURACY_FINE);
                 criteria.setPowerRequirement(Criteria.POWER_HIGH);

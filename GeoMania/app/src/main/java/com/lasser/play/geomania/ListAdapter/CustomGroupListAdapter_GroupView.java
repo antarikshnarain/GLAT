@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.lasser.play.geomania.GroupManager;
+import com.lasser.play.geomania.MapsActivity;
 import com.lasser.play.geomania.R;
 
 import java.util.ArrayList;
@@ -55,10 +56,15 @@ public class CustomGroupListAdapter_GroupView  extends ArrayAdapter<String>{
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent map_activity_intent = new Intent().setClass(context, MapsActivity.class);
+                map_activity_intent.putExtra("gid","");
+                context.startActivity(map_activity_intent);
+                /*
                 Intent group_manager_intent = new Intent().setClass(context, GroupManager.class);
                 group_manager_intent.putExtra("title",groupName.get(position));
                 group_manager_intent.putExtra("icon",groupIcon.get(position));
                 context.startActivity(group_manager_intent);
+                */
                 //ViewGroup parentView = (ViewGroup) view.getParent();
                 //parentView.removeView(view);
             }

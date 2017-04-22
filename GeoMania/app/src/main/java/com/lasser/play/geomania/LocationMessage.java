@@ -3,6 +3,7 @@ package com.lasser.play.geomania;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -50,35 +51,37 @@ public class LocationMessage extends AppCompatActivity {
     int CROP_IMAGE = 106;
     Uri picUri;
 
+
+    String phone, token, group_id;
+    int type;
     // View
     LinearLayout media_list;
     CustomGroupListAdapter_MediaList adapter;
-
-    // Custom List adapter
-    //String[] itemTitle = {""};
-    //String[] itemImage = {""};
     ArrayList<String> itemTitle = new ArrayList<String>();
     ArrayList<String> itemImage = new ArrayList<String>();
     int adapterCount;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Bundle bundle = getIntent().getExtras();
         setContentView(R.layout.activity_location_message);
-       // message = (UserSendMessage) bundle.getSerializable("MapsData");
-        //gps_longitude = bundle.getDouble("gps_longitude",0.0);
-        //TYPE = bundle.getInt("type",1);
-        /*
-        tv_latitude = (TextView) findViewById(R.id.my_latitude);
-        tv_longitude = (TextView) findViewById(R.id.my_logitude);
-        user_message = (EditText) findViewById(R.id.user_message);
-        tv_longitude.setText("Longitude: "+message.gps_longi);
-        tv_latitude.setText("Latitude: "+message.gps_lati);
-        */
+        // Loading Shared Preferences
+        SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
+        phone = phoneDetails.getString("phone", "");
+        token = phoneDetails.getString("token", "");
+        // Getting Data from MapsActivity
+        Intent data = getIntent();
+        gps_latitude = data.getDoubleExtra("latitude",0.0);
+        gps_longitude = data.getDoubleExtra("longitude",0.0);
+        group_id = data.getStringExtra("gid");
+        type = data.getIntExtra("type",0);
         // Horizontal List View
         adapter = new CustomGroupListAdapter_MediaList(this,itemTitle,itemImage);
         adapterCount = adapter.getCount();
         media_list = (LinearLayout) findViewById(R.id.horizontal_list_view);
+        tv_latitude = (TextView) findViewById(R.id.my_latitude);
+        tv_longitude = (TextView) findViewById(R.id.my_longitude);
+        tv_latitude.setText("Latitude: "+gps_latitude);
+        tv_longitude.setText("Longitude: "+gps_longitude);
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -176,37 +179,6 @@ public class LocationMessage extends AppCompatActivity {
     public void object_generator(View v){
         Intent captureImageIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(captureImageIntent,CAPTURE_IMAGE);
-        /*
-        //mydata.hashMap=hashMap;
-        try {
-            URLDataHash mydata = new URLDataHash();
-            mydata.jsonData.put("INT",2);
-            mydata.jsonData.put("FLOAT",0.02);
-            mydata.jsonData.put("String","MyString");
-            int a[]={1,2,3};
-            String b[]={"alpha","beta","gamma"};
-            mydata.jsonData.put("Object INT[]",new JSONArray(a));
-            JSONObject json1 = new JSONObject();
-            json1.put("key1","2222");
-            json1.put("key2",new JSONArray(b));
-            mydata.jsonData.put("Object JSON[]",json1);
-            mydata.url="192.168.43.231";
-            mydata.apicall="hello";//"user/signup";
-            // Send Request
-            Log.d("MYAPP: SEND",mydata.jsonData.toString());
-            JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
-
-            Log.d("MYAPP: RECV",data.toString());
-        }
-        catch (JSONException e){
-            e.printStackTrace();
-        }
-        catch (ExecutionException e){
-            e.printStackTrace();
-        }
-        catch (InterruptedException e){
-            e.printStackTrace();
-        }*/
     }
     public void addMedia(View v){
         // Getting multiple images from gallery
