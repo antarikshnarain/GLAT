@@ -11,11 +11,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.lasser.play.geomania.CustomDataStructure.SharedFunctions;
 import com.lasser.play.geomania.GroupManager;
 import com.lasser.play.geomania.MapsActivity;
 import com.lasser.play.geomania.R;
 
 import java.util.ArrayList;
+import com.lasser.play.geomania.CustomDataStructure.SharedFunctions.*;
 
 /**
  * Created by antar on 16-Apr-17.
@@ -26,15 +28,16 @@ public class CustomGroupListAdapter_GroupView  extends ArrayAdapter<String>{
     private final ArrayList<String> groupName;
     private final ArrayList<String> groupIcon;
     private final ArrayList<String> groupUnread;
+    private final ArrayList<String> groupId;
+    private SharedFunctions myfunctions;
 
-    private final int imgWidth = 60;
-    private final int imgHeight = 60;
-    public CustomGroupListAdapter_GroupView(Activity context, ArrayList<String> groupName, ArrayList<String> groupIcon, ArrayList<String> groupUnread) {
+    public CustomGroupListAdapter_GroupView(Activity context, ArrayList<String> groupId, ArrayList<String> groupName, ArrayList<String> groupIcon, ArrayList<String> groupUnread) {
         super(context, R.layout.my_list_group_view, groupName);
         // TODO Auto-generated constructor stub
         this.context=context;
         this.groupName=groupName;
         this.groupIcon=groupIcon;
+        this.groupId=groupId;
         this.groupUnread = groupUnread;
     }
     public View getView(final int position, View view, final ViewGroup parent) {
@@ -50,14 +53,16 @@ public class CustomGroupListAdapter_GroupView  extends ArrayAdapter<String>{
             imageView.setImageResource(R.mipmap.ic_launcher);
         }
         else {
-            imageView.setImageBitmap(resizeBitmap(groupIcon.get(position)));
+            imageView.setImageBitmap(myfunctions.resizeBitmap(groupIcon.get(position)));
         }
         // To Delete Itself, onClick
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent map_activity_intent = new Intent().setClass(context, MapsActivity.class);
-                map_activity_intent.putExtra("gid","");
+                map_activity_intent.putExtra("title", groupName.get(position));
+                map_activity_intent.putExtra("icon", groupIcon.get(position));
+                map_activity_intent.putExtra("gid",groupId.get(position));
                 context.startActivity(map_activity_intent);
                 /*
                 Intent group_manager_intent = new Intent().setClass(context, GroupManager.class);
@@ -71,21 +76,4 @@ public class CustomGroupListAdapter_GroupView  extends ArrayAdapter<String>{
         });
         return rowView;
     };
-
-    public Bitmap resizeBitmap(String filePath){
-        // Function to resize Bitmap from File for the Application
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filePath, bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-        int scaleFactor = 1;
-        if ((imgWidth > 0) || (imgHeight > 0)) {
-            scaleFactor = Math.max(photoW/imgWidth, photoH/imgHeight);
-        }
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        return BitmapFactory.decodeFile(filePath, bmOptions);
-    }
-
 }

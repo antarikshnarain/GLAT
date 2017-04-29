@@ -8,8 +8,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
@@ -24,6 +28,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.lasser.play.geomania.CustomDataStructure.SharedFunctions;
 import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
 
@@ -37,10 +44,11 @@ public class Login extends Activity{
 
     private static Login inst;
     EditText username,userphoneno, userotp;
-    SharedPreferences sharedPref;
     String myOTP = "", serverOTP = "";
     boolean loginFlag;
     Intent intent_group_view;
+
+    SharedFunctions myfunction;
 
     public static Login instance() {
         return inst;
@@ -60,23 +68,29 @@ public class Login extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Enable GPS
+        LocationManager l = (LocationManager) this.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        if(!l.isProviderEnabled(LocationManager.GPS_PROVIDER))
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        // Enabel Wi-Fi
+        WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(true);
+        myfunction = new SharedFunctions(this);
         loginFlag = false;
         username = (EditText) findViewById(R.id.username);
         userphoneno = (EditText) findViewById(R.id.phoneno);
         userotp = (EditText) findViewById(R.id.userotp);
-        sharedPref = getSharedPreferences("userdata", Context.MODE_PRIVATE);
-        String auto_name = sharedPref.getString("name", "");
-        String auto_phone = sharedPref.getString("phone", "");
-        String auto_token = sharedPref.getString("token", "");
-        intent_group_view = new Intent().setClass(this,MapsActivity.class);
 
-        if(!auto_name.equals("") && !auto_phone.equals("") && !auto_token.equals("")){
+        intent_group_view = new Intent().setClass(this,GroupView.class);
+
+        if(!myfunction.user.equals("") && !myfunction.phone.equals("") && !myfunction.token.equals("")){
             Toast.makeText(this,"Auto Login Successful!",Toast.LENGTH_SHORT).show();
             startActivity(intent_group_view);
         }
-        else if(!auto_name.equals("")  && !auto_phone.equals("")){
-            username.setText(auto_name);
-            userphoneno.setText(auto_phone);
+        else if(!myfunction.user.equals("")  && !myfunction.phone.equals("")){
+            username.setText(myfunction.user);
+            userphoneno.setText(myfunction.phone);
         }
         if(checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, 201);
@@ -84,65 +98,48 @@ public class Login extends Activity{
         //TelephonyManager telephonyManager = (TelephonyManager) this.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
         //String mPhoneNo = telephonyManager.getSimSerialNumber();
     }
-    private void askForPermission(String permission, Integer requestCode){
-        if(ContextCompat.checkSelfPermission(this,permission) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this,new String[]{permission}, requestCode);
-        }
-    }
     public void updateList(final String smsBody, final String smsAddress){
         // Get Message from Message Service.
         Log.d("MYAPP","ReceivedPro:"+smsAddress+"\n"+smsBody);
         myOTP = smsBody;
         userotp.setText(myOTP);
-        try {
-            getAccessToken();
-        }
-        catch(JSONException e){
-            e.printStackTrace();
-        }
+        getAccessToken();
         // CODE to be added to read message get otp and compare with server otp.
     }
-    public void checkLogin(View v) throws JSONException{
+    // Button to Get OTP
+    public void checkLogin(View v){
         String mname = username.getText().toString();
         String mphone = userphoneno.getText().toString();
-        if (mname != "" && mphone != ""){
-            JSONObject json = new JSONObject();
-            json.put("name",mname);
-            json.put("phone",mphone);
-            URLDataHash mydata = new URLDataHash();
-            mydata.url="192.168.43.231";
-            mydata.apicall="user/sendotp";//"imageTest";
-            mydata.jsonData=json;
-            try {
+        try {
+            if (mname != "" && mphone != "") {
+                JSONObject json = new JSONObject();
+                json.put("name", mname);
+                json.put("phone", mphone);
+                URLDataHash mydata = new URLDataHash();
+                mydata.url = myfunction.serverUrl;
+                mydata.apicall = "user/sendotp";//"imageTest";
+                mydata.jsonData = json;
                 // Requesting server for OTP.
                 JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
-                if(data == null){
-                    Toast.makeText(this,"Cannot Connect to the Server",Toast.LENGTH_SHORT).show();
+                if (data == null) {
+                    Toast.makeText(this, "Cannot Connect to the Server", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(getApplicationContext(),"Data Send to Server!",Toast.LENGTH_SHORT).show();
-                try {
-                    if (data.getString("status").equals("success")) {
-                        // Stores OTP from server in serverOTP.
-                        serverOTP = data.getJSONObject("resp").getString("otp");
-                        Toast.makeText(this,"Server OTP: " + serverOTP, Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        Toast.makeText(this,"Error in Login Credentials" + data.getString("err"),Toast.LENGTH_SHORT).show();
-                    }
+                Toast.makeText(getApplicationContext(), "Data Send to Server!", Toast.LENGTH_SHORT).show();
+                if (data.getString("status").equals("success")) {
+                    // Stores OTP from server in serverOTP.
+                    serverOTP = data.getJSONObject("resp").getString("otp");
+                    Toast.makeText(this, "Server OTP: " + serverOTP, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Error in Login Credentials" + data.getString("err"), Toast.LENGTH_SHORT).show();
                 }
-                catch (JSONException e){
-                    e.printStackTrace();
-                }
-            }
-            catch (InterruptedException e){
-                e.printStackTrace();
-            }
-            catch (ExecutionException e){
-                e.printStackTrace();
             }
         }
+        catch (JSONException e){ e.printStackTrace(); }
+        catch (InterruptedException e){ e.printStackTrace(); }
+        catch (ExecutionException e){ e.printStackTrace(); }
     }
+    // Compare OTP from Server and User.
     public boolean CheckOtp(String serverOtp){
         if (serverOtp.equals(myOTP)){
             return true;
@@ -150,7 +147,8 @@ public class Login extends Activity{
         Toast.makeText(this,"Error Login, Invaild OTP!",Toast.LENGTH_SHORT).show();
         return false;
     }
-    public void otpverify(View v) throws JSONException{
+    // Manually verify OTP
+    public void otpverify(View v){
         myOTP = userotp.getText().toString();
         Log.d("MYAPP OTP", myOTP);
         // Override
@@ -162,13 +160,14 @@ public class Login extends Activity{
             getAccessToken();
         }
     }
-    private void getAccessToken() throws JSONException{
+    // Request Server for Access Token
+    private void getAccessToken(){
         if (CheckOtp(myOTP)) {
             try {
                 JSONObject json = new JSONObject();
                 json.put("phone", userphoneno.getText().toString());
                 URLDataHash mydata = new URLDataHash();
-                mydata.url = "192.168.43.231";
+                mydata.url = myfunction.serverUrl;
                 mydata.apicall = "user/login";//"imageTest";
                 mydata.jsonData = json;
                 JSONObject tokenData = new nodeHttpRequest(this).execute(mydata).get();
@@ -179,25 +178,20 @@ public class Login extends Activity{
                 if (tokenData.getString("status").equals("success")) {
                     String mtoken = tokenData.getJSONObject("resp").getString("token");
                     Toast.makeText(this, "TOKEN:" + mtoken, Toast.LENGTH_SHORT).show();
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("name", username.getText().toString());
-                    editor.putString("phone", userphoneno.getText().toString());
-                    editor.putString("token", mtoken);
-                    editor.commit();
-                    Log.d("MYAPP: phone",sharedPref.getString("phone",""));
-                    Log.d("MYAPP: token", sharedPref.getString("token",""));
+                    myfunction.updateSharedPreference("user",username.getText().toString());
+                    myfunction.updateSharedPreference("phone",userphoneno.getText().toString());
+                    myfunction.updateSharedPreference("token",mtoken);
+                    Log.d("MYAPP: phone",myfunction.phone);
+                    Log.d("MYAPP: token", myfunction.token);
                     startActivity(intent_group_view);
                     finish();
                 } else {
                     Toast.makeText(this, "Didn't Receive Access Token from Server!" +tokenData.getString("err"), Toast.LENGTH_SHORT).show();
                 }
             }
-            catch(InterruptedException e){
-                e.printStackTrace();
-            }
-            catch(ExecutionException e){
-                e.printStackTrace();
-            }
+            catch (JSONException e){ e.printStackTrace(); }
+            catch(InterruptedException e){ e.printStackTrace(); }
+            catch(ExecutionException e){ e.printStackTrace(); }
         }
     }
     @Override
@@ -224,7 +218,6 @@ public class Login extends Activity{
     @Override
     public void onRequestPermissionsResult (int requestCode, String permission[], int[] grantResults){
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-
         }
         else{
             Toast.makeText(this,"Permission Denied", Toast.LENGTH_SHORT).show();

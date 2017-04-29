@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/ic_launcher"
     tools:context="com.lasser.play.geomania.Login">
     <EditText
         android:layout_width="match_parent"
@@ -12,9 +12,9 @@
         android:hint="NAME"
         android:ems="10"
         android:id="@+id/username"
-        android:layout_below="@+id/imageView"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="30dp" />
+        android:layout_marginTop="101dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
 
     <EditText
         android:layout_width="match_parent"
@@ -50,14 +50,6 @@
         android:layout_alignParentEnd="true"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"/>
-
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/location_tag"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/user_login"

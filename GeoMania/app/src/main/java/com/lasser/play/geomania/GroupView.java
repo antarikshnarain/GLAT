@@ -35,6 +35,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.lasser.play.geomania.AsyncJava.GpsData;
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
+import com.lasser.play.geomania.CustomDataStructure.SharedFunctions;
 import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 import com.lasser.play.geomania.ListAdapter.CustomGroupListAdapter_GroupView;
 
@@ -52,8 +53,8 @@ import static org.json.JSONObject.NULL;
 public class GroupView extends AppCompatActivity implements LocationListener {
     ListView myList;
     SearchView mSearchView;
-    String phone, token;
 
+    SharedFunctions myfunction;
     boolean first_time=false;
     ProgressDialog progressDialog;
     // Location Variables
@@ -66,6 +67,7 @@ public class GroupView extends AppCompatActivity implements LocationListener {
     // Custom List Adapter
     ArrayList<String> list = new ArrayList<String>();
     CustomGroupListAdapter_GroupView adapter;
+    ArrayList<String> groupId = new ArrayList<String>();
     ArrayList<String> groupName = new ArrayList<String>();
     ArrayList<String> groupIcon = new ArrayList<String>();
     ArrayList<String> groupUnread = new ArrayList<String>();
@@ -81,10 +83,7 @@ public class GroupView extends AppCompatActivity implements LocationListener {
         Log.d("MYAPP: GPS", "Done with GPS");
         mSearchView = (SearchView) findViewById(R.id.groupsearchview);
         myList = (ListView) findViewById(R.id.showGroups);
-        // Starting Location Manager
-        SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
-        phone = phoneDetails.getString("phone", "");
-        token = phoneDetails.getString("token", "");
+        myfunction = new SharedFunctions(this);
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle(":((())):");
         progressDialog.setMessage("Waiting for location ...");
@@ -125,109 +124,103 @@ public class GroupView extends AppCompatActivity implements LocationListener {
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
 
-    public void getLocation(){
+    public void getLocation() {
         try {
             locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
             // getting GPS status
             boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
             // getting network status
             boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            if(this.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED) {
-                Log.d("MYAPP","Location Manager Successfully Created");
+            if (this.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                Log.d("MYAPP", "Location Manager Successfully Created");
             }
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // no network provider is enabled
             } else {
                 // First get location from Network Provider
-                if(isNetworkEnabled){
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
-                }
-                else{
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
-                }
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,this);
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
+                //locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000, 5, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 5, this);
                 Criteria criteria = new Criteria();
-                criteria.setAccuracy(Criteria.ACCURACY_FINE);
-                criteria.setPowerRequirement(Criteria.POWER_HIGH);
-                criteria.setAltitudeRequired(true);
+                //criteria.setAccuracy(Criteria.ACCURACY_FINE);
+                //criteria.setPowerRequirement(Criteria.POWER_HIGH);
+                //criteria.setAltitudeRequired(true);
                 String provider = locationManager.getBestProvider(criteria, false);
-                Toast.makeText(this.getApplicationContext(),"Current Provider: "+provider, Toast.LENGTH_SHORT).show();
-                locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                Toast.makeText(this.getApplicationContext(), "Current Provider: " + provider, Toast.LENGTH_SHORT).show();
+                //locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                 if (locationManager != null) {
                     location = locationManager
                             .getLastKnownLocation(provider);
                     if (location != null) {
                         gps_latitude = location.getLatitude();
                         gps_longitude = location.getLongitude();
+                    } else {
+                        Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
                     }
-                    else{
-                        Toast.makeText(this,"Last Location Unknown",Toast.LENGTH_SHORT).show();
-                    }
+                } else {
+                    Log.d("MYAPP", "Location Manager NULL");
                 }
-                else{
-                    Log.d("MYAPP","Location Manager NULL");
-                }
-                Log.d("MYAPP","Location Manager Initialized!");
+                Log.d("MYAPP", "Location Manager Initialized!");
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     private void requestGroupData() throws JSONException{
         JSONObject requestMap = new JSONObject();
-        requestMap.put("phone", phone);
-        requestMap.put("token", token);
+        requestMap.put("phone", myfunction.phone);
+        requestMap.put("token", myfunction.token);
         requestMap.put("mode", "create");
         JSONObject coordinates=new JSONObject();
-            coordinates.put("latitude",Double.toString(gps_latitude));
-            coordinates.put("longitude",Double.toString(gps_longitude));
+        coordinates.put("latitude",Double.toString(gps_latitude));
+        coordinates.put("longitude",Double.toString(gps_longitude));
         requestMap.put("location",coordinates);
         Log.d("MYAPP: RequestData",requestMap.toString());
-        Log.d("MYAPP: SharedPrefs", phone + " " + token);
+        Log.d("MYAPP: SharedPrefs", myfunction.phone + " " + myfunction.token);
         URLDataHash mydata = new URLDataHash();
-        mydata.url = "192.168.43.231";
+        mydata.url = myfunction.serverUrl;
         mydata.apicall = "user/group/list";
         mydata.jsonData=requestMap;
         try {
             JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
             if(data == null){
                 Log.d("MYAPP: ServerResp","Error during server request");
-                ArrayList<String> t_name, t_icon, t_unread;
+                ArrayList<String> t_gid, t_name, t_icon, t_unread;
+                t_gid = new ArrayList<>();
                 t_name = new ArrayList<String>();
                 t_icon = new ArrayList<String>();
                 t_unread = new ArrayList<String>();
+                t_gid.add("1");
                 t_name.add("Alpha");
                 t_icon.add("null");
                 t_unread.add("Unread: 23");
-                adapter = new CustomGroupListAdapter_GroupView(this,t_name,t_icon,t_unread);
+                adapter = new CustomGroupListAdapter_GroupView(this,t_gid, t_name,t_icon,t_unread);
                 myList.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
                 return;
             }
             JSONArray groups = data.getJSONArray("resp");
-            JSONObject currentObj=new JSONObject();
-            final JSONObject GroupIdNameHash=new JSONObject();
-            final ArrayList<String> groupList=new ArrayList<String>();
+            JSONObject currentObj;
             for(int i=0;i<groups.length();i++)
             {
                 currentObj = groups.getJSONObject(i);
-                Log.d("MYAPP: Json Parse", currentObj.toString());
-                groupList.add(currentObj.getString("gname"));
-                GroupIdNameHash.put(currentObj.getString("gname"), currentObj.getString("gid"));
-                Log.d("MYAPP: Group Names",groupList.toString());
+                groupName.add(i,currentObj.getString("gname"));
+                groupId.add(i, currentObj.getString("gid"));
+                groupUnread.add(i, currentObj.getString("unread"));
+                groupIcon.add(i, currentObj.getString("icon"));
             }
-            adapter = new CustomGroupListAdapter_GroupView(this,groupName,groupIcon,groupUnread);
+            adapter = new CustomGroupListAdapter_GroupView(this,groupId, groupName,groupIcon,groupUnread);
             myList.setAdapter(adapter);
         }
         catch (InterruptedException e){ e.printStackTrace(); }
         catch (ExecutionException e){ e.printStackTrace(); }
     }
+    // Creating a New Group
     public void addGroup(View v){
         Intent new_group_intent = new Intent().setClass(this,GroupManager.class);
         new_group_intent.putExtra("title","");
         new_group_intent.putExtra("icon","");
+        new_group_intent.putExtra("gid","");
         startActivity(new_group_intent);
     }
     @Override

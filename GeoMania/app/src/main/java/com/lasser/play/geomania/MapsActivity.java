@@ -50,6 +50,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.lasser.play.geomania.AsyncJava.GpsData;
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
 import com.lasser.play.geomania.CustomDataStructure.MapMessages;
+import com.lasser.play.geomania.CustomDataStructure.SharedFunctions;
 import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 import com.lasser.play.geomania.CustomDataStructure.UserSendMessage;
 import com.lasser.play.geomania.ListAdapter.CustomGroupListAdapter_GroupView;
@@ -94,8 +95,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     TextView tv_message_type;
     ProgressDialog progressDialog;
 
-    String phone, token, group_id;
+    // Data control variables
+    String group_name, group_icon, group_id;
     boolean first_flag = true;
+    SharedFunctions myfunction;
 
     // Intents
     Intent location_message_intent;
@@ -103,6 +106,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        Intent intent = getIntent();
+        group_name = intent.getStringExtra("title");
+        group_icon = intent.getStringExtra("icon");
+        group_id = intent.getStringExtra("gid");
+        myfunction = new SharedFunctions(this);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle(":((())):");
@@ -123,11 +131,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         tv_message_type = (TextView) findViewById(R.id.textView_message_type);
 
         // Initializing messages variable for map
-        Intent intent = getIntent();
-        group_id = intent.getStringExtra("id");
-        SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
-        phone = phoneDetails.getString("phone", "");
-        token = phoneDetails.getString("token", "");
         location_message_intent = new Intent().setClass(this,LocationMessage.class);
         location_message_intent.putExtra("gid", group_id);
         map_messages = new ArrayList<Marker>();
@@ -212,18 +215,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // no network provider is enabled
             } else {
                 // First get location from Network Provider
-                if (isNetworkEnabled) {
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
-                } else {
-                    //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-                }
-                locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
-                //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-
+                //locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000, 5, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 5, this);
                 Criteria criteria = new Criteria();
-                criteria.setAccuracy(Criteria.ACCURACY_FINE);
-                criteria.setPowerRequirement(Criteria.POWER_HIGH);
-                criteria.setAltitudeRequired(true);
+                //criteria.setAccuracy(Criteria.ACCURACY_FINE);
+                //criteria.setPowerRequirement(Criteria.POWER_HIGH);
+                //criteria.setAltitudeRequired(true);
                 String provider = locationManager.getBestProvider(criteria, false);
                 Toast.makeText(this.getApplicationContext(), "Current Provider: " + provider, Toast.LENGTH_SHORT).show();
                 //locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
@@ -280,8 +278,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         try{
             JSONObject requestMap = new JSONObject();
             requestMap.put("gid", group_id);
-            requestMap.put("phone", phone);
-            requestMap.put("token", token);
+            requestMap.put("phone", myfunction.phone);
+            requestMap.put("token", myfunction.token);
             JSONObject coordinates=new JSONObject();
             coordinates.put("lat",Double.toString(gps_latitude));
             coordinates.put("long",Double.toString(gps_longitude));
@@ -413,6 +411,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.action_editgroup:
                 // About option clicked.
                 Intent intent_group_manager = new Intent().setClass(this,GroupManager.class);
+                //title, icon, gid
+                intent_group_manager.putExtra("title",group_name);
+                intent_group_manager.putExtra("icon",group_icon);
+                intent_group_manager.putExtra("gid",group_id);
                 startActivity(intent_group_manager);
                 Toast.makeText(getApplicationContext(),"Group Edit",Toast.LENGTH_SHORT).show();
                 return true;

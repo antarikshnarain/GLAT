@@ -14,6 +14,7 @@
         android:layout_alignParentRight="true"
         android:layout_gravity="fill"
         android:layout_margin="@dimen/fab_margin"
+        android:onClick="UpdateGroupInformation"
         app:backgroundTint="@android:drawable/btn_star"
         android:src="@android:drawable/ic_menu_save" />
 
@@ -21,13 +22,13 @@
         android:id="@+id/groupName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="30dp"
-        android:textColor="#558b2f"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:hint="Group Name"
         android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/image_group_icon" />
+        android:layout_toEndOf="@+id/image_group_icon"
+        android:ems="10"
+        android:hint="Group Name"
+        android:inputType="textPersonName"
+        android:textColor="#558b2f"
+        android:textSize="30dp" />
 
     <ImageView
         android:id="@+id/image_group_icon"

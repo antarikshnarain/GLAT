@@ -9,13 +9,6 @@ import java.util.ArrayList;
  */
 
 public class MapMessages {
-    static public class MessageFeed {
-        public String user;
-        public String message;
-        public MessageFeed(){
-            user = message = "";
-        }
-    }
     public double latitude;
     public double longitude;
     public String summary;

@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
+import com.lasser.play.geomania.CustomDataStructure.SharedFunctions;
 import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 import com.lasser.play.geomania.CustomDataStructure.UserSendMessage;
 import com.lasser.play.geomania.ListAdapter.CustomGroupListAdapter_MediaList;
@@ -51,6 +52,7 @@ public class LocationMessage extends AppCompatActivity {
     int CROP_IMAGE = 106;
     Uri picUri;
 
+    SharedFunctions myfunction;
 
     String phone, token, group_id;
     int type;
@@ -64,10 +66,6 @@ public class LocationMessage extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_message);
-        // Loading Shared Preferences
-        SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
-        phone = phoneDetails.getString("phone", "");
-        token = phoneDetails.getString("token", "");
         // Getting Data from MapsActivity
         Intent data = getIntent();
         gps_latitude = data.getDoubleExtra("latitude",0.0);
@@ -188,46 +186,10 @@ public class LocationMessage extends AppCompatActivity {
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,"Select Images"),GALLERY_IMAGE);
     }
-    public String FileToBase64(File filePath ){
-        try {
-            Log.d("MYAPP","Starting Image to Base64");
-            InputStream inputStream = new FileInputStream(filePath);
-            byte[] bytes;
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            while((bytesRead = inputStream.read(buffer)) !=-1){
-                output.write(buffer,0,bytesRead);
-            }
-            bytes = output.toByteArray();
-            Log.d("MYAPP","Starting Image to Base64 Sending Data");
-            return Base64.encodeToString(bytes,Base64.DEFAULT);
-        }
-        catch(FileNotFoundException e){
-            e.printStackTrace();
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-        return "";
-    }
-    public void Base64ToFile(String data, File filename){
-        try {
-            Log.d("MYAPP","Starting Base64 to File");
-            byte[] bytes = Base64.decode(data, Base64.DEFAULT);
-            FileOutputStream out = new FileOutputStream(filename);
-            out.write(bytes);
-            Log.d("MYAPP","File Written");
-            out.close();
-        }
-        catch(IOException e){
-            e.printStackTrace();
-        }
-    }
 
     public void sendDataToServer(File dir1, File dir2,String filename) throws JSONException{
         URLDataHash mydata = new URLDataHash();
-        mydata.jsonData.put("image",FileToBase64(dir1));
+        mydata.jsonData.put("image",myfunction.FileToBase64(dir1));
         mydata.jsonData.put("fileName",filename);
         mydata.url="192.168.43.231";
         mydata.apicall="imageTest";//"user/signup";
@@ -237,7 +199,7 @@ public class LocationMessage extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"Data Send to Server!",Toast.LENGTH_SHORT).show();
             String fileData = data.getString("image");
             String filename_new = data.getString("fileName");
-            Base64ToFile(fileData,dir2);
+            myfunction.Base64ToFile(fileData,dir2);
         }
         catch (JSONException e){
             e.printStackTrace();
