@@ -46,7 +46,7 @@ public class SharedFunctions {
     private final int imgHeight = 60;
 
     // Server Constants
-    public final String serverUrl = "192.168.1.1";
+    public final String serverUrl = "192.168.43.231";
     // External Storage Directory
     public final String root_path;
     // Constructor

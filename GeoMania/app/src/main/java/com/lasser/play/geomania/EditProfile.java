@@ -88,7 +88,7 @@ public class EditProfile extends Activity {
 
                     requestMap.put("phone", PhoneValue);
                     requestMap.put("token", TokenValue);
-                    requestMap.put("newname",newName);
+                    requestMap.put("name",newName);
                     //requestMap.put("imageDetails",);     //ADD IMAGE DETAILS HERE
 
 
@@ -101,7 +101,7 @@ public class EditProfile extends Activity {
 
                 URLDataHash mydata = new URLDataHash();
                 mydata.url = "192.168.43.231";
-                mydata.apicall = "user/edit/profile";
+                mydata.apicall = "user/updateProfile";
                 mydata.jsonData=requestMap;
 
                 try {

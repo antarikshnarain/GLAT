@@ -57,6 +57,8 @@ public class GroupManager extends AppCompatActivity {
 
     SharedFunctions myfunction;
     ArrayList<String> latestNumbers = new ArrayList<>();
+    ArrayList<String> latestMembers = new ArrayList<String>();
+    JSONObject NumbersHash = new JSONObject();
     int GALLERY_IMAGE = 102;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,7 +169,7 @@ public class GroupManager extends AppCompatActivity {
             }
             JSONArray members = data.getJSONArray("resp");
             JSONObject currentObj;
-            final JSONObject NumbersHash = new JSONObject();
+
             final ArrayList<String> membersGroup = new ArrayList<String>();
             for (int i = 0; i < members.length(); i++) {
                 currentObj = members.getJSONObject(i);
@@ -177,8 +179,8 @@ public class GroupManager extends AppCompatActivity {
                 //Log.d("MYAPP: members group", membersGroup.toString());
             }
             Log.d("MYAPP: Members", "Total Members: " + membersGroup.size());
-            final ArrayList<String> latestMembers = new ArrayList<String>();
-            membersGroup.add("Praful");
+
+         //   membersGroup.add("Praful");
             final ArrayAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, membersGroup);
             listview.setAdapter(adapter);
             final ArrayAdapter adaptermembers = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, latestMembers);
@@ -203,8 +205,10 @@ public class GroupManager extends AppCompatActivity {
                     adaptermembers.notifyDataSetChanged();
                 }
             });
-            for (String current : latestMembers)
-                latestNumbers.add(NumbersHash.getString(current));
+
+
+
+
         }
         catch (JSONException e) { e.printStackTrace(); }
         catch (InterruptedException e) { e.printStackTrace(); }
@@ -220,10 +224,14 @@ public class GroupManager extends AppCompatActivity {
             requestMap.put("token", myfunction.token);
             requestMap.put("gid", group_id);
             requestMap.put("gname", group_name);
+            for (String current : latestMembers)
+                latestNumbers.add(NumbersHash.getString(current));
+            Log.d("Latest members earlier",""+latestNumbers.size());
+            Log.d("Latest members ssize",""+latestNumbers.size());
             requestMap.put("mems", new JSONArray(latestNumbers));
             URLDataHash mydata = new URLDataHash();
             mydata.url = myfunction.serverUrl;
-            mydata.apicall = "group/add";
+            mydata.apicall = "group/updateOrCreate";
             mydata.jsonData = requestMap;
 
             // Making request to server

@@ -28,7 +28,7 @@ public class MessageViewFeed extends AppCompatActivity {
     ListView listView_feed;
     EditText editText_my_message;
     String user, phone, token;
-    String group_id, message_id;
+    int group_id, message_id;
 
     CustomGroupListAdapter_MessageFeed adapter;
     ArrayList<MessageFeed> messageFeeds;
@@ -38,10 +38,11 @@ public class MessageViewFeed extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message_view_feed);
         Intent intent = getIntent();
-        group_id = intent.getStringExtra("gid");
-        message_id = intent.getStringExtra("mid");
+        group_id = intent.getIntExtra("gid",0);
+        message_id = intent.getIntExtra("mid",0);
         listView_feed = (ListView) findViewById(R.id.listview_message_feed);
         editText_my_message = (EditText) findViewById(R.id.editText_my_message);
+        messageFeeds = new ArrayList<>();
         SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
         user = phoneDetails.getString("user","");
         phone = phoneDetails.getString("phone", "");
@@ -62,7 +63,7 @@ public class MessageViewFeed extends AppCompatActivity {
             json.put("mid",message_id);
             URLDataHash mydata = new URLDataHash();
             mydata.url = "192.168.43.231";
-            mydata.apicall = "user/group/message";
+            mydata.apicall = "group/displayMessageFeed";
             mydata.jsonData = json;
             JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
             if(data == null){
