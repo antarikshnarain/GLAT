@@ -64,6 +64,7 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.zip.Inflater;
 
@@ -134,7 +135,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         location_message_intent = new Intent().setClass(this,LocationMessage.class);
         location_message_intent.putExtra("gid", group_id);
         map_messages = new ArrayList<Marker>();
-        loadGroupMessages();
+        messages = new ArrayList<MapMessages>();
     }
 
     /**
@@ -152,6 +153,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // and move the map's camera to the same location.
         mMap = googleMap;
         mMap.setOnInfoWindowClickListener(this);
+        loadGroupMessages();
     }
     @Override
     public void onLocationChanged(Location location) {
@@ -255,6 +257,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         messageFeed.message_state = message_state;
         // 0-> unread, 1-> read, 2-> mine
         Marker marker = null;
+        Log.d("MYAPP: state", ""+message_state);
         if (message_state == 1) {
             marker = mMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         }
@@ -269,9 +272,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         marker.setTag(id);
         marker.setTitle(createdby);
-        marker.setSnippet(summary.substring(0,40)+"...");
+        if (summary.length()>40)
+            marker.setSnippet(summary.substring(0,40)+"...");
+        else
+            marker.setSnippet(summary+"...");
         map_messages.add(marker);
         messages.add(id,messageFeed);
+        Log.d("MYAPP: marker", marker.getTitle() + marker.getPosition().toString());
     }
 
     public void loadGroupMessages(){
@@ -280,14 +287,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             requestMap.put("gid", group_id);
             requestMap.put("phone", myfunction.phone);
             requestMap.put("token", myfunction.token);
-            JSONObject coordinates=new JSONObject();
-            coordinates.put("lat",Double.toString(gps_latitude));
-            coordinates.put("long",Double.toString(gps_longitude));
-            requestMap.put("location",coordinates);
+            requestMap.put("lat",Double.toString(gps_latitude));
+            requestMap.put("long",Double.toString(gps_longitude));
             Log.d("MYAPP: RequestData",requestMap.toString());
             URLDataHash mydata = new URLDataHash();
             mydata.url = "192.168.43.231";
-            mydata.apicall = "user/group/messages";
+            mydata.apicall = "group/showAllMessages";
             mydata.jsonData=requestMap;
             // Request the server
             JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
@@ -303,11 +308,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return;
             }
             JSONArray groups = data.getJSONArray("resp");
+            Log.d("MY APP",groups.toString());
             JSONObject currentObj=new JSONObject();
             for(int i=0;i<groups.length();i++)
             {
                 currentObj = groups.getJSONObject(i);
-                addMessageToMap(i, currentObj.getDouble("lat"), currentObj.getDouble("long"), currentObj.getInt("readStatus"),currentObj.getString("body"), currentObj.getInt("gid"), currentObj.getInt("mid"), currentObj.getString("createdby"));
+                addMessageToMap(i, currentObj.getDouble("lat"), currentObj.getDouble("long"), currentObj.getInt("readStatus"),currentObj.getString("body"), currentObj.getInt("gid"), currentObj.getInt("mid"), currentObj.getString("createdByName"));
             }
         }
         catch (JSONException e){ e.printStackTrace();}

@@ -176,7 +176,7 @@ public class GroupView extends AppCompatActivity implements LocationListener {
         Log.d("MYAPP: SharedPrefs", myfunction.phone + " " + myfunction.token);
         URLDataHash mydata = new URLDataHash();
         mydata.url = myfunction.serverUrl;
-        mydata.apicall = "user/group/list";
+        mydata.apicall = "user/groupListView";
         mydata.jsonData=requestMap;
         try {
             JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
@@ -203,8 +203,8 @@ public class GroupView extends AppCompatActivity implements LocationListener {
                 currentObj = groups.getJSONObject(i);
                 groupName.add(i,currentObj.getString("gname"));
                 groupId.add(i, currentObj.getString("gid"));
-                groupUnread.add(i, currentObj.getString("unread"));
-                groupIcon.add(i, currentObj.getString("icon"));
+                groupUnread.add(i, currentObj.getString("unread_count"));
+                groupIcon.add(i, currentObj.getString("pic_location"));
             }
             adapter = new CustomGroupListAdapter_GroupView(this,groupId, groupName,groupIcon,groupUnread);
             myList.setAdapter(adapter);

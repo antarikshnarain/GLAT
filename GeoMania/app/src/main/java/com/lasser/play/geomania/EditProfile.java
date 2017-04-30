@@ -62,6 +62,7 @@ public class EditProfile extends Activity {
             public void onClick(View view) {
                 // Update User Information
                 try {
+<<<<<<< HEAD
                     // Upload Profile Pic
                     //myfunction.uploadFile()
 
@@ -76,6 +77,29 @@ public class EditProfile extends Activity {
                     mydata.url = "192.168.43.231";
                     mydata.apicall = "user/edit/profile";
                     mydata.jsonData = requestMap;
+=======
+
+
+                    requestMap.put("phone", PhoneValue);
+                    requestMap.put("token", TokenValue);
+                    requestMap.put("name",newName);
+                    //requestMap.put("imageDetails",);     //ADD IMAGE DETAILS HERE
+
+
+                }
+                catch (JSONException e){
+                    e.printStackTrace();
+
+                }
+
+
+                URLDataHash mydata = new URLDataHash();
+                mydata.url = "192.168.43.231";
+                mydata.apicall = "user/updateProfile";
+                mydata.jsonData=requestMap;
+
+                try {
+>>>>>>> 1d23b780c51f35f0da7c1b6981bedf1f5d51cad5
 
                     JSONObject data = new nodeHttpRequest(getApplicationContext()).execute(mydata).get();
                     Log.d("MYAPP:", data.toString());

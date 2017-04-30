@@ -49,7 +49,7 @@ public class CustomGroupListAdapter_GroupView  extends ArrayAdapter<String>{
 
         txtTitle.setText(groupName.get(position));
         txtUnread.setText(groupUnread.get(position));
-        if(groupIcon.get(position).equals("null")){
+        if(groupIcon.get(position).equals("null") || groupIcon.get(position).equals("")){
             imageView.setImageResource(R.mipmap.ic_launcher);
         }
         else {
