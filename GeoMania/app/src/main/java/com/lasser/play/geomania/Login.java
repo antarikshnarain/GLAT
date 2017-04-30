@@ -82,7 +82,7 @@ public class Login extends Activity{
         userphoneno = (EditText) findViewById(R.id.phoneno);
         userotp = (EditText) findViewById(R.id.userotp);
 
-        intent_group_view = new Intent().setClass(this,GroupView.class);
+        intent_group_view = new Intent().setClass(this,MyCamera.class);
 
         if(!myfunction.user.equals("") && !myfunction.phone.equals("") && !myfunction.token.equals("")){
             Toast.makeText(this,"Auto Login Successful!",Toast.LENGTH_SHORT).show();

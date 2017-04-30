@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.lasser.play.geomania.AsyncJava.SensorData;
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
 import com.lasser.play.geomania.CustomDataStructure.SharedFunctions;
 import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
@@ -53,7 +54,7 @@ public class LocationMessage extends AppCompatActivity {
     Uri picUri;
 
     SharedFunctions myfunction;
-
+    SensorData sensorData;
     String phone, token, group_id;
     int type;
     // View
@@ -72,6 +73,8 @@ public class LocationMessage extends AppCompatActivity {
         gps_longitude = data.getDoubleExtra("longitude",0.0);
         group_id = data.getStringExtra("gid");
         type = data.getIntExtra("type",0);
+        myfunction = new SharedFunctions(this);
+        sensorData = new SensorData(this);
         // Horizontal List View
         adapter = new CustomGroupListAdapter_MediaList(this,itemTitle,itemImage);
         adapterCount = adapter.getCount();
@@ -88,7 +91,7 @@ public class LocationMessage extends AppCompatActivity {
             // Gallery Images
             if (resultCode == Activity.RESULT_OK){
                 Uri selectedImage = data.getData();
-                String filePath = getRealPathFromURI(selectedImage);
+                String filePath = myfunction.getRealPathFromURI(selectedImage);
                 Log.d("MYAPP: FilePath",filePath);
                 itemTitle.add("Image");
                 itemImage.add(filePath);
@@ -107,15 +110,6 @@ public class LocationMessage extends AppCompatActivity {
             mImage.setImageBitmap(bitmap);
 
         }
-    }
-    public String getRealPathFromURI(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
-        @SuppressWarnings("deprecation")
-        Cursor cursor = managedQuery(uri, projection, null, null, null);
-        int column_index = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
     }
     public void performCrop(){
         try{
@@ -155,19 +149,29 @@ public class LocationMessage extends AppCompatActivity {
         }
     }
     public void send_geo_message(View v){
-        //message.msg.text = user_message.getText().toString();
-        //setResult(101,new Intent().putExtra("LocationMessageData",message));
-        //finish();
-        // Get image from Gallary
-        //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        //photoPickerIntent.setType("image/*");
-        //startActivityForResult(photoPickerIntent,102);
-        File sdcard = Environment.getExternalStorageDirectory();
-        // to this path add a new directory path
-        File dir = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image1.jpg");
-        File dir2 = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image3.jpg");
-        //Base64ToImage(ImageToBase64(dir),dir2);
         try{
+            URLDataHash mydata = new URLDataHash();
+            mydata.url = myfunction.serverUrl;
+            mydata.apicall = "group/message/add";
+            mydata.jsonData.put("phone",myfunction.phone);
+            mydata.jsonData.put("token",myfunction.token);
+            mydata.jsonData.put("lat",gps_latitude);
+            mydata.jsonData.put("long",gps_longitude);
+            mydata.jsonData.put("gid",group_id);
+            mydata.jsonData.put("sensorData", "");
+
+            //message.msg.text = user_message.getText().toString();
+            //setResult(101,new Intent().putExtra("LocationMessageData",message));
+            //finish();
+            // Get image from Gallary
+            //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+            //photoPickerIntent.setType("image/*");
+            //startActivityForResult(photoPickerIntent,102);
+            File sdcard = Environment.getExternalStorageDirectory();
+            // to this path add a new directory path
+            File dir = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image1.jpg");
+            File dir2 = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image3.jpg");
+            //Base64ToImage(ImageToBase64(dir),dir2);
             sendDataToServer(dir,dir2,"image1.jpg");
         }
         catch(JSONException e){

@@ -170,11 +170,8 @@ public class GroupView extends AppCompatActivity implements LocationListener {
         JSONObject requestMap = new JSONObject();
         requestMap.put("phone", myfunction.phone);
         requestMap.put("token", myfunction.token);
-        requestMap.put("mode", "create");
-        JSONObject coordinates=new JSONObject();
-        coordinates.put("latitude",Double.toString(gps_latitude));
-        coordinates.put("longitude",Double.toString(gps_longitude));
-        requestMap.put("location",coordinates);
+        requestMap.put("lat",Double.toString(gps_latitude));
+        requestMap.put("long",Double.toString(gps_longitude));
         Log.d("MYAPP: RequestData",requestMap.toString());
         Log.d("MYAPP: SharedPrefs", myfunction.phone + " " + myfunction.token);
         URLDataHash mydata = new URLDataHash();

@@ -223,9 +223,8 @@ public class GroupManager extends AppCompatActivity {
             requestMap.put("mems", new JSONArray(latestNumbers));
             URLDataHash mydata = new URLDataHash();
             mydata.url = myfunction.serverUrl;
-            mydata.apicall = "group/add";
+            mydata.apicall = "group/updateOrCreate";
             mydata.jsonData = requestMap;
-
             // Making request to server
             JSONObject data = new nodeHttpRequest(getApplicationContext()).execute(mydata).get();
             Log.d("Response Group ", data.toString());

@@ -18,6 +18,10 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.security.Provider;
 
 import static android.content.Context.LOCATION_SERVICE;
@@ -88,5 +92,18 @@ public class SensorData implements SensorEventListener{
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
 
+    }
+
+    public JSONObject sensorDataJson(){
+        try {
+            JSONObject my_sensor_data = new JSONObject();
+            my_sensor_data.put("magnetic", new JSONArray(magnetic));
+            my_sensor_data.put("gyroscope", new JSONArray(gyroscope));
+            my_sensor_data.put("accelerometer", new JSONArray(accelerometer));
+            my_sensor_data.put("pressure", pressure);
+            return my_sensor_data;
+        }
+        catch (JSONException e) { e.printStackTrace(); }
+        return null;
     }
 }

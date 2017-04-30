@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
+import com.lasser.play.geomania.CustomDataStructure.SharedFunctions;
 import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 
 import org.json.JSONException;
@@ -35,22 +36,17 @@ public class EditProfile extends Activity {
     ImageButton editButton;
     ImageView profilePic;
 
-    int GALLERY_IMAGE = 102;
-    private final int imgWidth = 60;
-    private final int imgHeight = 60;
+    SharedFunctions myfunction;
+
+    private boolean update_profile_pic_flag=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
-
         profilePic = (ImageView) findViewById(R.id.imageView_profile_pic);
         editText=(EditText) findViewById(R.id.editName);
-
-        SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
-
-        final String nameValue = phoneDetails.getString("name", "");
-
-        editText.setText(nameValue);
+        myfunction = new SharedFunctions(this);
+        editText.setText(myfunction.user);
 
 
         /*
@@ -64,47 +60,22 @@ public class EditProfile extends Activity {
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-             /*   Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-
-
-
-                SharedPreferences sharedpreferences = getSharedPreferences("userdata", Context.MODE_PRIVATE);
-
-
-                String newName=editText.getText().toString();
-
-                SharedPreferences phoneDetails = getSharedPreferences("userdata", MODE_PRIVATE);
-
-                String PhoneValue = phoneDetails.getString("phone", "");
-                String TokenValue = phoneDetails.getString("token", "");
-
-                JSONObject requestMap = new JSONObject();
-
-
-
+                // Update User Information
                 try {
+                    // Upload Profile Pic
+                    //myfunction.uploadFile()
 
-
-                    requestMap.put("phone", PhoneValue);
-                    requestMap.put("token", TokenValue);
-                    requestMap.put("newname",newName);
+                    String newName = editText.getText().toString();
+                    JSONObject requestMap = new JSONObject();
+                    requestMap.put("phone", myfunction.phone);
+                    requestMap.put("token", myfunction.token);
+                    requestMap.put("newname", newName);
                     //requestMap.put("imageDetails",);     //ADD IMAGE DETAILS HERE
 
-
-                }
-                catch (JSONException e){
-                    e.printStackTrace();
-
-                }
-
-
-                URLDataHash mydata = new URLDataHash();
-                mydata.url = "192.168.43.231";
-                mydata.apicall = "user/edit/profile";
-                mydata.jsonData=requestMap;
-
-                try {
+                    URLDataHash mydata = new URLDataHash();
+                    mydata.url = "192.168.43.231";
+                    mydata.apicall = "user/edit/profile";
+                    mydata.jsonData = requestMap;
 
                     JSONObject data = new nodeHttpRequest(getApplicationContext()).execute(mydata).get();
                     Log.d("MYAPP:", data.toString());
@@ -112,68 +83,42 @@ public class EditProfile extends Activity {
 
                     String response = data.toString();
 
-                    if(response==NULL)
-                    {
-                        Log.d("NULL OBJECT","");
-                    }
-                    else
-                    {
+                    if (response == NULL) {
+                        Log.d("NULL OBJECT", "");
+                    } else {
                         Toast.makeText(getApplicationContext(), "Profile Has been edited", Toast.LENGTH_SHORT).show();
                     }
 
-                }
-                catch (InterruptedException e){
+                } catch (JSONException e) {
                     e.printStackTrace();
-                }
-                catch (ExecutionException e){
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
 
             }
         });
-
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode == GALLERY_IMAGE){
+        if(requestCode == myfunction.GALLERY_IMAGE){
             // Gallery Images
             if (resultCode == Activity.RESULT_OK){
                 Uri selectedImage = data.getData();
-                String filePath = getRealPathFromURI(selectedImage);
-                profilePic.setImageBitmap(resizeBitmap(filePath));
+                String filePath = myfunction.getRealPathFromURI(selectedImage);
+                profilePic.setImageBitmap(myfunction.resizeBitmap(filePath));
+                update_profile_pic_flag = true;
             }
         }
     }
     public void changeProfilePic(View v){
+        update_profile_pic_flag = false;
         Intent intent = new Intent();
         intent.setType("image/*");
         //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent,"Select Images"),GALLERY_IMAGE);
-    }
-    public String getRealPathFromURI(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
-        @SuppressWarnings("deprecation")
-        Cursor cursor = managedQuery(uri, projection, null, null, null);
-        int column_index = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
-    }
-    public Bitmap resizeBitmap(String filePath){
-        // Function to resize Bitmap from File for the Application
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filePath, bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-        int scaleFactor = 1;
-        if ((imgWidth > 0) || (imgHeight > 0)) {
-            scaleFactor = Math.max(photoW/imgWidth, photoH/imgHeight);
-        }
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        return BitmapFactory.decodeFile(filePath, bmOptions);
+        startActivityForResult(Intent.createChooser(intent,"Select Images"),myfunction.GALLERY_IMAGE);
     }
 }

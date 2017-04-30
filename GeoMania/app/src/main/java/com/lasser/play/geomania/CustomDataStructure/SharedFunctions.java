@@ -16,6 +16,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
+import com.lasser.play.geomania.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,17 +50,27 @@ public class SharedFunctions {
     public final String serverUrl = "192.168.1.1";
     // External Storage Directory
     public final String root_path;
+    // Request Codes
+    public final static int GALLERY_IMAGE = 102;
+
     // Constructor
     public SharedFunctions(Context mContext){
         context = mContext;
         root_path = Environment.getExternalStorageDirectory().getPath()+"/GeoMania/";
+        String[] localdirs = {"temp","profile_pic","group_icon","object_file"};
+        for (String a: localdirs
+             ) {
+            File mydir = new File(root_path+a);
+            if(!mydir.isDirectory())
+                mydir.mkdirs();
+        }
         sharedPreferences = context.getSharedPreferences("userdata", Context.MODE_PRIVATE);
         sharedPrefEditor = sharedPreferences.edit();
         user = sharedPreferences.getString("user","");
         phone = sharedPreferences.getString("phone","");
         token = sharedPreferences.getString("token","");
     }
-    // Update Shared Preferences
+    // Update Shared Preferences (user, phone, token)
     public void updateSharedPreference(String key, String value){
         sharedPrefEditor.putString(key,value);
         sharedPrefEditor.commit();
@@ -84,6 +95,16 @@ public class SharedFunctions {
         bmOptions.inJustDecodeBounds = false;
         bmOptions.inSampleSize = scaleFactor;
         return BitmapFactory.decodeFile(filePath, bmOptions);
+    }
+    // Function get Get Path from Uri
+    public String getRealPathFromURI(Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        @SuppressWarnings("deprecation")
+        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+        int column_index = cursor
+                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
     }
     // File to String
     public String FileToBase64(File filePath ){
@@ -142,7 +163,7 @@ public class SharedFunctions {
         }
         return null;
     }
-    // Save ProfilePic to folder
+    // Download file(filename) to file_path
     public boolean downloadFile(String file_path, String filename){
         // Request Server
         try {
@@ -169,6 +190,7 @@ public class SharedFunctions {
         catch (ExecutionException e) { e.printStackTrace(); }
         return false;
     }
+    // Upload File(temp_path) and save it to file_path
     public boolean uploadFile(String temp_path, String file_path){
         try{
             URLDataHash mydata = new URLDataHash();
