@@ -17,6 +17,9 @@ import com.lasser.play.geomania.MapsActivity;
 import com.lasser.play.geomania.R;
 
 import java.util.ArrayList;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+
 import com.lasser.play.geomania.CustomDataStructure.SharedFunctions.*;
 
 /**
@@ -42,19 +45,17 @@ public class CustomGroupListAdapter_GroupView  extends ArrayAdapter<String>{
     }
     public View getView(final int position, View view, final ViewGroup parent) {
         LayoutInflater inflater=context.getLayoutInflater();
+        myfunctions = new SharedFunctions(context);
         View rowView=inflater.inflate(R.layout.my_list_group_view, null,true);
         TextView txtTitle = (TextView) rowView.findViewById(R.id.textView_groupname);
         TextView txtUnread = (TextView) rowView.findViewById(R.id.textView_unread);
         ImageView imageView = (ImageView) rowView.findViewById(R.id.imageView_groupicon);
-
-        txtTitle.setText(groupName.get(position));
+        if(groupName.get(position).length()>10)
+            txtTitle.setText(groupName.get(position).substring(0,10)+"...");
+        else
+            txtTitle.setText(groupName.get(position));
         txtUnread.setText(groupUnread.get(position));
-        if(groupIcon.get(position).equals("null") || groupIcon.get(position).equals("")){
-            imageView.setImageResource(R.mipmap.ic_launcher);
-        }
-        else {
-            imageView.setImageBitmap(myfunctions.resizeBitmap(groupIcon.get(position)));
-        }
+        imageView.setImageBitmap(myfunctions.setPicture(groupIcon.get(position),2));
         // To Delete Itself, onClick
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override

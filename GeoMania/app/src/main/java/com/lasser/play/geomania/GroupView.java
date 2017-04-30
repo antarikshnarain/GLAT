@@ -152,8 +152,18 @@ public class GroupView extends AppCompatActivity implements LocationListener {
                     location = locationManager
                             .getLastKnownLocation(provider);
                     if (location != null) {
+                        Log.d("MYAPP", "Loading Last known location!");
                         gps_latitude = location.getLatitude();
                         gps_longitude = location.getLongitude();
+                        progressDialog.setMessage("Fetching Group Data ...");
+                        try {
+                            requestGroupData();
+                        }
+                        catch (JSONException e){
+                            e.printStackTrace();
+                        }
+                        progressDialog.dismiss();
+                        first_time = true;
                     } else {
                         Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
                     }
@@ -189,7 +199,7 @@ public class GroupView extends AppCompatActivity implements LocationListener {
                 t_unread = new ArrayList<String>();
                 t_gid.add("1");
                 t_name.add("Alpha");
-                t_icon.add("null");
+                t_icon.add("");
                 t_unread.add("Unread: 23");
                 adapter = new CustomGroupListAdapter_GroupView(this,t_gid, t_name,t_icon,t_unread);
                 myList.setAdapter(adapter);
@@ -203,7 +213,7 @@ public class GroupView extends AppCompatActivity implements LocationListener {
                 currentObj = groups.getJSONObject(i);
                 groupName.add(i,currentObj.getString("gname"));
                 groupId.add(i, currentObj.getString("gid"));
-                groupUnread.add(i, currentObj.getString("unread_count"));
+                groupUnread.add(i, "Unread: " + currentObj.getString("unread_count"));
                 groupIcon.add(i, currentObj.getString("pic_location"));
             }
             adapter = new CustomGroupListAdapter_GroupView(this,groupId, groupName,groupIcon,groupUnread);

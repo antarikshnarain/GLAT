@@ -26,6 +26,7 @@ import com.lasser.play.geomania.CustomDataStructure.URLDataHash;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.concurrent.ExecutionException;
 
 import static org.json.JSONObject.NULL;
@@ -37,82 +38,57 @@ public class EditProfile extends Activity {
     ImageView profilePic;
 
     SharedFunctions myfunction;
-
+    String filePath;
     private boolean update_profile_pic_flag=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
         profilePic = (ImageView) findViewById(R.id.imageView_profile_pic);
-        editText=(EditText) findViewById(R.id.editName);
+        editText = (EditText) findViewById(R.id.editName);
         myfunction = new SharedFunctions(this);
         editText.setText(myfunction.user);
-
-
-        /*
-        IMAGE change CODE HERE
-
-
-
-         */
-
+        profilePic.setImageBitmap(myfunction.setPicture(myfunction.user_profile_pic,1));
         editButton=(ImageButton) findViewById(R.id.sumbitButton);
         editButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Update User Information
                 try {
-<<<<<<< HEAD
                     // Upload Profile Pic
-                    //myfunction.uploadFile()
-
+                    String fileName=null;
                     String newName = editText.getText().toString();
                     JSONObject requestMap = new JSONObject();
+                    if(update_profile_pic_flag) {
+                        fileName = myfunction.uploadFile(filePath, myfunction.root_path + "profile_pic/");
+                        requestMap.put("picLoc", fileName);
+                        Log.d("MYAPP: EditProfile", "Updating Profile Pic "+ fileName);
+                    }
+                    if(!myfunction.user.equals(newName)){
+                        requestMap.put("name", newName);
+                        myfunction.updateSharedPreference("user",newName);
+                        Log.d("MYAPP: EditProfile", "Updating Name " + newName);
+                    }
                     requestMap.put("phone", myfunction.phone);
                     requestMap.put("token", myfunction.token);
-                    requestMap.put("newname", newName);
+
                     //requestMap.put("imageDetails",);     //ADD IMAGE DETAILS HERE
 
                     URLDataHash mydata = new URLDataHash();
-                    mydata.url = "192.168.43.231";
-                    mydata.apicall = "user/edit/profile";
+                    mydata.url = myfunction.serverUrl;
+                    mydata.apicall = "user/updateProfile";
                     mydata.jsonData = requestMap;
-=======
-
-
-                    requestMap.put("phone", PhoneValue);
-                    requestMap.put("token", TokenValue);
-                    requestMap.put("name",newName);
                     //requestMap.put("imageDetails",);     //ADD IMAGE DETAILS HERE
 
-
-                }
-                catch (JSONException e){
-                    e.printStackTrace();
-
-                }
-
-
-                URLDataHash mydata = new URLDataHash();
-                mydata.url = "192.168.43.231";
-                mydata.apicall = "user/updateProfile";
-                mydata.jsonData=requestMap;
-
-                try {
->>>>>>> 1d23b780c51f35f0da7c1b6981bedf1f5d51cad5
-
                     JSONObject data = new nodeHttpRequest(getApplicationContext()).execute(mydata).get();
-                    Log.d("MYAPP:", data.toString());
-
-
-                    String response = data.toString();
-
-                    if (response == NULL) {
-                        Log.d("NULL OBJECT", "");
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Profile Has been edited", Toast.LENGTH_SHORT).show();
+                    if(data ==  null){
+                        Log.d("MYAPP: EditProfile", "Empty Data user/updateProfile");
+                        return;
                     }
-
+                    Toast.makeText(getApplicationContext(), "Profile Has been edited", Toast.LENGTH_SHORT).show();
+                    if(update_profile_pic_flag)
+                        myfunction.updateSharedPreference("user_profile_pic", fileName);
+                    finish();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -131,7 +107,7 @@ public class EditProfile extends Activity {
             // Gallery Images
             if (resultCode == Activity.RESULT_OK){
                 Uri selectedImage = data.getData();
-                String filePath = myfunction.getRealPathFromURI(selectedImage);
+                filePath = myfunction.getRealPathFromURI(selectedImage);
                 profilePic.setImageBitmap(myfunction.resizeBitmap(filePath));
                 update_profile_pic_flag = true;
             }

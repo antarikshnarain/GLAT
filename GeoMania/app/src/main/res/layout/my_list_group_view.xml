@@ -20,20 +20,21 @@
         android:id="@+id/textView_groupname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="40dp"
+        android:textSize="25dp"
         android:textColor="#64b5f6"
         android:text="TextView"
+        android:layout_marginStart="20dp"
+        android:layout_alignParentTop="true"
         android:layout_toEndOf="@+id/imageView_groupicon"
-        android:layout_marginStart="20dp" />
+        android:layout_marginTop="12dp" />
 
     <TextView
         android:id="@+id/textView_unread"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20dp"
+        android:textSize="15dp"
         android:textColor="#d32f2f"
+        android:text="TextView"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="29dp"
-        android:layout_toEndOf="@+id/textView_groupname"
-        android:text="TextView" />
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

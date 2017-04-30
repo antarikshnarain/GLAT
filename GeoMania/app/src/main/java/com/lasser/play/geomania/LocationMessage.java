@@ -78,6 +78,7 @@ public class LocationMessage extends AppCompatActivity {
         // Horizontal List View
         adapter = new CustomGroupListAdapter_MediaList(this,itemTitle,itemImage);
         adapterCount = adapter.getCount();
+        user_message = (EditText) findViewById(R.id.user_message);
         media_list = (LinearLayout) findViewById(R.id.horizontal_list_view);
         tv_latitude = (TextView) findViewById(R.id.my_latitude);
         tv_longitude = (TextView) findViewById(R.id.my_longitude);
@@ -149,6 +150,9 @@ public class LocationMessage extends AppCompatActivity {
         }
     }
     public void send_geo_message(View v){
+        String userMessage = user_message.getText().toString();
+        if(userMessage.equals(""))
+            return;
         try{
             URLDataHash mydata = new URLDataHash();
             mydata.url = myfunction.serverUrl;
@@ -158,8 +162,15 @@ public class LocationMessage extends AppCompatActivity {
             mydata.jsonData.put("lat",gps_latitude);
             mydata.jsonData.put("long",gps_longitude);
             mydata.jsonData.put("gid",group_id);
-            mydata.jsonData.put("sensorData", "");
-
+            mydata.jsonData.put("sensorData", sensorData.sensorDataJson());
+            mydata.jsonData.put("body", userMessage);
+            JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
+            if (data == null) {
+                Log.d("MYAPP: ServerResp", "Error during server request");
+                return;
+            }
+            if (data.getString("status").equals("success"))
+                Toast.makeText(this, "Message Created Successfully", Toast.LENGTH_SHORT).show();
             //message.msg.text = user_message.getText().toString();
             //setResult(101,new Intent().putExtra("LocationMessageData",message));
             //finish();
@@ -167,16 +178,15 @@ public class LocationMessage extends AppCompatActivity {
             //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
             //photoPickerIntent.setType("image/*");
             //startActivityForResult(photoPickerIntent,102);
-            File sdcard = Environment.getExternalStorageDirectory();
+            //File sdcard = Environment.getExternalStorageDirectory();
             // to this path add a new directory path
-            File dir = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image1.jpg");
-            File dir2 = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image3.jpg");
+            //File dir = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image1.jpg");
+            //File dir2 = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image3.jpg");
             //Base64ToImage(ImageToBase64(dir),dir2);
-            sendDataToServer(dir,dir2,"image1.jpg");
         }
-        catch(JSONException e){
-            e.printStackTrace();
-        }
+        catch(JSONException e){ e.printStackTrace(); }
+        catch (InterruptedException e) { e.printStackTrace(); }
+        catch (ExecutionException e) { e.printStackTrace(); }
     }
     public void object_generator(View v){
         Intent captureImageIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);

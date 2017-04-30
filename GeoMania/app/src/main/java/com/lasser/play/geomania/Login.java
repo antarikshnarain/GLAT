@@ -68,7 +68,6 @@ public class Login extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         // Enable GPS
         LocationManager l = (LocationManager) this.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         if(!l.isProviderEnabled(LocationManager.GPS_PROVIDER))
@@ -76,17 +75,19 @@ public class Login extends Activity{
         // Enabel Wi-Fi
         WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
+
         myfunction = new SharedFunctions(this);
         loginFlag = false;
         username = (EditText) findViewById(R.id.username);
         userphoneno = (EditText) findViewById(R.id.phoneno);
         userotp = (EditText) findViewById(R.id.userotp);
 
-        intent_group_view = new Intent().setClass(this,MyCamera.class);
+        intent_group_view = new Intent().setClass(this,GroupView.class);
 
         if(!myfunction.user.equals("") && !myfunction.phone.equals("") && !myfunction.token.equals("")){
             Toast.makeText(this,"Auto Login Successful!",Toast.LENGTH_SHORT).show();
             startActivity(intent_group_view);
+            finish();
         }
         else if(!myfunction.user.equals("")  && !myfunction.phone.equals("")){
             username.setText(myfunction.user);

@@ -52,7 +52,7 @@ public class GroupManager extends AppCompatActivity {
     EditText groupName;
     ImageView groupIcon;
     String group_name, group_icon, group_id;
-
+    String filePath;
     ProgressDialog progressDialog;
 
     SharedFunctions myfunction;
@@ -70,8 +70,8 @@ public class GroupManager extends AppCompatActivity {
         setContentView(R.layout.activity_group_manager);
 
         groupName = (EditText) findViewById(R.id.groupName);
-        listview = (ListView) findViewById(R.id.contactsView);
-        listview1 = (ListView) findViewById(R.id.membersView);
+        listview = (ListView) findViewById(R.id.membersView);
+        listview1 = (ListView) findViewById(R.id.contactsView);
         groupIcon = (ImageView) findViewById(R.id.image_group_icon);
         // Get Read Contacts Permission
         if(checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED){
@@ -80,12 +80,7 @@ public class GroupManager extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         myfunction = new SharedFunctions(this);
         groupName.setText(group_name);
-        if(group_icon.equals("") || group_icon.equals("null")){
-            groupIcon.setImageResource(R.mipmap.ic_launcher);
-        }
-        else{
-            groupIcon.setImageBitmap(myfunction.resizeBitmap(group_icon));
-        }
+        groupIcon.setImageBitmap(myfunction.setPicture(group_icon,2));
         progressDialog.setTitle(":((())):");
         progressDialog.setMessage("Retrieving Group Information ...");
         progressDialog.show();
@@ -100,19 +95,10 @@ public class GroupManager extends AppCompatActivity {
             // Gallery Images
             if (resultCode == Activity.RESULT_OK){
                 Uri selectedImage = data.getData();
-                String filePath = getRealPathFromURI(selectedImage);
+                filePath = myfunction.getRealPathFromURI(selectedImage);
                 groupIcon.setImageBitmap(myfunction.resizeBitmap(filePath));
             }
         }
-    }
-    public String getRealPathFromURI(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
-        @SuppressWarnings("deprecation")
-        Cursor cursor = managedQuery(uri, projection, null, null, null);
-        int column_index = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
     }
     // OnClick Function
     public void changeGroupIcon(View v){
@@ -156,6 +142,7 @@ public class GroupManager extends AppCompatActivity {
             requestMap.put("phone", myfunction.phone);
             requestMap.put("token", myfunction.token);
             requestMap.put("contacts", contactObjects);
+            requestMap.put("gid", group_id);
             //Log.d("MYAPP Contacts:", contactObjects.toString());
             URLDataHash mydata = new URLDataHash();
             mydata.url = myfunction.serverUrl;
@@ -167,14 +154,26 @@ public class GroupManager extends AppCompatActivity {
                 // No Data found
                 return;
             }
-            JSONArray members = data.getJSONArray("resp");
             JSONObject currentObj;
-
+            boolean isAdmin = true;//data.getJSONObject("resp").getBoolean("isAdmin");
+            if(!isAdmin){
+                // Disable Edit Text
+                groupName.setFocusable(false);
+                // Disable Group Icon
+                groupIcon.setClickable(false);
+                // Hide Save Icon
+                FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+                fab.setVisibility(View.INVISIBLE);
+            }
+            JSONArray members = data.getJSONArray("resp");//.getJSONArray("contacts");
             final ArrayList<String> membersGroup = new ArrayList<String>();
             for (int i = 0; i < members.length(); i++) {
                 currentObj = members.getJSONObject(i);
                 //Log.d("MYAPP: Json Parse", currentObj.toString());
-                membersGroup.add(currentObj.getString("dname"));
+                if(currentObj.getBoolean("is_member"))
+                    membersGroup.add(currentObj.getString("dname"));
+                else
+                    latestMembers.add(currentObj.getString("dname"));
                 NumbersHash.put(currentObj.getString("dname"), currentObj.getString("phone"));
                 //Log.d("MYAPP: members group", membersGroup.toString());
             }
@@ -185,30 +184,28 @@ public class GroupManager extends AppCompatActivity {
             listview.setAdapter(adapter);
             final ArrayAdapter adaptermembers = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, latestMembers);
             listview1.setAdapter(adaptermembers);
-            listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    String item = ((TextView) view).getText().toString();
-                    membersGroup.remove(item);
-                    latestMembers.add(item);
-                    adapter.notifyDataSetChanged();
-                    adaptermembers.notifyDataSetChanged();
-                }
-            });
-            listview1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    String item = ((TextView) view).getText().toString();
-                    membersGroup.add(item);
-                    latestMembers.remove(item);
-                    adapter.notifyDataSetChanged();
-                    adaptermembers.notifyDataSetChanged();
-                }
-            });
-
-
-
-
+            if(isAdmin) {
+                listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        String item = ((TextView) view).getText().toString();
+                        membersGroup.remove(item);
+                        latestMembers.add(item);
+                        adapter.notifyDataSetChanged();
+                        adaptermembers.notifyDataSetChanged();
+                    }
+                });
+                listview1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        String item = ((TextView) view).getText().toString();
+                        membersGroup.add(item);
+                        latestMembers.remove(item);
+                        adapter.notifyDataSetChanged();
+                        adaptermembers.notifyDataSetChanged();
+                    }
+                });
+            }
         }
         catch (JSONException e) { e.printStackTrace(); }
         catch (InterruptedException e) { e.printStackTrace(); }
@@ -217,22 +214,30 @@ public class GroupManager extends AppCompatActivity {
     // OnClick UpdateGroupInformation
     public void UpdateGroupInformation(View v) {
         try {
+            // Upload Group Icon
+            String filename = "";
+            JSONObject requestMap = new JSONObject();
+            if(filePath != null){
+                filename = myfunction.uploadFile(filePath, myfunction.root_path + "group_icon/");
+                requestMap.put("picLoc", filename);
+                Log.d("MYAPP: EditProfile", "Updating Profile Pic "+ filename);
+            }
             // To handle change of Group name
             group_name = groupName.getText().toString();
-            JSONObject requestMap = new JSONObject();
             requestMap.put("phone", myfunction.phone);
             requestMap.put("token", myfunction.token);
             requestMap.put("gid", group_id);
             requestMap.put("gname", group_name);
+            Log.d("MYAPP: Latest members",""+latestNumbers.size());
             for (String current : latestMembers)
                 latestNumbers.add(NumbersHash.getString(current));
-            Log.d("Latest members earlier",""+latestNumbers.size());
-            Log.d("Latest members ssize",""+latestNumbers.size());
+            Log.d("MYAPP: Latest member",""+latestNumbers.size());
             requestMap.put("mems", new JSONArray(latestNumbers));
             URLDataHash mydata = new URLDataHash();
             mydata.url = myfunction.serverUrl;
             mydata.apicall = "group/updateOrCreate";
             mydata.jsonData = requestMap;
+            Log.d("MYAPP: GManagerReq",mydata.toString());
             // Making request to server
             JSONObject data = new nodeHttpRequest(getApplicationContext()).execute(mydata).get();
             Log.d("Response Group ", data.toString());

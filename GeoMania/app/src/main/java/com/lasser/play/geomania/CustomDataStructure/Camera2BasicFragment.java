@@ -803,10 +803,6 @@ public class Camera2BasicFragment extends Fragment
                     showToast("Saved: " + mFile);
                     Log.d("MYAPP: Storage", mFile.toString());
                     unlockFocus();
-                    closeCamera();
-                    stopBackgroundThread();
-                    getActivity().finish();
-                    Log.d("MYAPP", "Finishing Activity Camera");
                 }
             };
 
@@ -844,7 +840,10 @@ public class Camera2BasicFragment extends Fragment
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
             // After this, the camera will go back to the normal state of preview.
-
+            //closeCamera();
+            //stopBackgroundThread();
+            getActivity().finish();
+            Log.d("MYAPP", "Finishing Activity Camera");
             //mState = STATE_PREVIEW;
             //mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
             //mBackgroundHandler);

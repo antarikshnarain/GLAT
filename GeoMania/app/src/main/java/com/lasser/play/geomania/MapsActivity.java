@@ -153,6 +153,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // and move the map's camera to the same location.
         mMap = googleMap;
         mMap.setOnInfoWindowClickListener(this);
+        updateMap(gps_latitude, gps_longitude);
         loadGroupMessages();
     }
     @Override
@@ -233,6 +234,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (location != null) {
                         gps_latitude = location.getLatitude();
                         gps_longitude = location.getLongitude();
+                        updateMap(gps_latitude,gps_longitude);
+                        progressDialog.dismiss();
+                        first_flag = false;
+                        Log.d("MYAPP", "Loading last known location!");
                     } else {
                         Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
                     }
@@ -283,6 +288,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void loadGroupMessages(){
         try{
+            progressDialog.setMessage("Retrieving Group Data ...");
+            progressDialog.show();
             JSONObject requestMap = new JSONObject();
             requestMap.put("gid", group_id);
             requestMap.put("phone", myfunction.phone);
@@ -291,7 +298,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             requestMap.put("long",Double.toString(gps_longitude));
             Log.d("MYAPP: RequestData",requestMap.toString());
             URLDataHash mydata = new URLDataHash();
-            mydata.url = "192.168.43.231";
+            mydata.url = myfunction.serverUrl;
             mydata.apicall = "group/showAllMessages";
             mydata.jsonData=requestMap;
             // Request the server
@@ -307,14 +314,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 t_unread.add("Unread: 23");
                 return;
             }
+            progressDialog.dismiss();
             JSONArray groups = data.getJSONArray("resp");
             Log.d("MY APP",groups.toString());
             JSONObject currentObj=new JSONObject();
             for(int i=0;i<groups.length();i++)
             {
                 currentObj = groups.getJSONObject(i);
+                Log.d("MYAPP: Marker", "adding marker" + currentObj.toString());
                 addMessageToMap(i, currentObj.getDouble("lat"), currentObj.getDouble("long"), currentObj.getInt("readStatus"),currentObj.getString("body"), currentObj.getInt("gid"), currentObj.getInt("mid"), currentObj.getString("createdByName"));
             }
+            Log.d("MYAPP: MAPS", "Loaded map with markers");
+            //progressDialog.dismiss();
         }
         catch (JSONException e){ e.printStackTrace();}
         catch (InterruptedException e){ e.printStackTrace(); }

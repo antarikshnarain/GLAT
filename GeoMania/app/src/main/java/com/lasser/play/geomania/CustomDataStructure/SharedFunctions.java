@@ -40,11 +40,11 @@ public class SharedFunctions {
     //Shared Preferences
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor sharedPrefEditor;
-    public String user, token, phone;
+    public String user, token, phone, user_profile_pic;
 
     // Bitmap Variables
-    private final int imgWidth = 60;
-    private final int imgHeight = 60;
+    private final int imgWidth = 120;
+    private final int imgHeight = 120;
 
     // Server Constants
     public final String serverUrl = "192.168.43.231";
@@ -69,6 +69,7 @@ public class SharedFunctions {
         user = sharedPreferences.getString("user","");
         phone = sharedPreferences.getString("phone","");
         token = sharedPreferences.getString("token","");
+        user_profile_pic = sharedPreferences.getString("user_profile_pic","");
     }
     // Update Shared Preferences (user, phone, token)
     public void updateSharedPreference(String key, String value){
@@ -80,6 +81,8 @@ public class SharedFunctions {
             phone = value;
         else if(key.equals("token"))
             token = value;
+        else if(key.equals("user_profile_pic"))
+            user_profile_pic = value;
     }
     // Function to resize Bitmap from File for the Application
     public Bitmap resizeBitmap(String filePath){
@@ -146,11 +149,19 @@ public class SharedFunctions {
     }
     // Get ProfilePic from folder, missing then request
     public Bitmap setPicture(String filename, int category){
+        if(filename.equals("")){
+            if(category == 1)
+                return BitmapFactory.decodeResource(context.getResources(),R.drawable.profile_icon);
+            else if(category == 2)
+                return BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
+            else
+                return BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
+        }
         String imagePath = "";
         if(category == 1)
-            imagePath = root_path + "ProfilePics/" + filename;
+            imagePath = root_path + "profile_pic/" + filename;
         else if (category == 2)
-            imagePath = root_path + "GroupIcon/" + filename;
+            imagePath = root_path + "group_icon/" + filename;
         else
             return null;
         File mFile = new File(imagePath);
@@ -191,7 +202,7 @@ public class SharedFunctions {
         return false;
     }
     // Upload File(temp_path) and save it to file_path
-    public boolean uploadFile(String temp_path, String file_path){
+    public String uploadFile(String temp_path, String file_path){
         try{
             URLDataHash mydata = new URLDataHash();
             mydata.jsonData.put("file",FileToBase64(new File(temp_path)));
@@ -203,10 +214,11 @@ public class SharedFunctions {
             Toast.makeText(context,"Data Send to Server!",Toast.LENGTH_SHORT).show();
             if (data.getString("status").equals("success")) {
                 Toast.makeText(context, "File Uploaded Successfully", Toast.LENGTH_SHORT).show();
-                // Saving File after download
-                file_path += data.getString("fileName");
-                Base64ToFile(data.getString("resp"), new File(file_path));
-                return true;
+                // Saving File after download resp="filename"
+                file_path += data.getString("resp");
+                Base64ToFile(FileToBase64(new File(temp_path)), new File(file_path));
+                Log.d("MYAPP: Upload", "File Uploaded "+file_path);
+                return data.getString("resp");
             }
             else{
                 Toast.makeText(context, "Failed To Upload!", Toast.LENGTH_SHORT).show();
@@ -215,7 +227,7 @@ public class SharedFunctions {
         catch (JSONException e){ e.printStackTrace(); }
         catch (InterruptedException e){ e.printStackTrace(); }
         catch (ExecutionException e) { e.printStackTrace(); }
-        return false;
+        return null;
     }
     public void askForPermission(String permission, Integer requestCode){
         if(ContextCompat.checkSelfPermission(context,permission) != PackageManager.PERMISSION_GRANTED){
