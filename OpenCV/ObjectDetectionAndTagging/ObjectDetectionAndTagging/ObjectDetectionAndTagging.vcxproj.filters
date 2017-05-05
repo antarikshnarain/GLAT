@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VideoSURFKeypoints.cpp">
+    <ClCompile Include="ImageSURFKeypoints.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

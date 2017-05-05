@@ -57,7 +57,8 @@ public class GroupManager extends AppCompatActivity {
 
     SharedFunctions myfunction;
     ArrayList<String> latestNumbers = new ArrayList<>();
-    ArrayList<String> latestMembers = new ArrayList<String>();
+    ArrayList<String> nonMembers = new ArrayList<String>();
+    ArrayList<String> membersGroup = new ArrayList<String>();
     JSONObject NumbersHash = new JSONObject();
     int GALLERY_IMAGE = 102;
     @Override
@@ -167,23 +168,20 @@ public class GroupManager extends AppCompatActivity {
                 fab.setVisibility(View.INVISIBLE);
             }
             JSONArray members = data.getJSONObject("resp").getJSONArray("contacts");
-            final ArrayList<String> membersGroup = new ArrayList<String>();
             for (int i = 0; i < members.length(); i++) {
                 currentObj = members.getJSONObject(i);
                 //Log.d("MYAPP: Json Parse", currentObj.toString());
                 if(currentObj.getBoolean("is_member"))
                     membersGroup.add(currentObj.getString("dname"));
                 else
-                    latestMembers.add(currentObj.getString("dname"));
+                    nonMembers.add(currentObj.getString("dname"));
                 NumbersHash.put(currentObj.getString("dname"), currentObj.getString("phone"));
                 //Log.d("MYAPP: members group", membersGroup.toString());
             }
             Log.d("MYAPP: Members", "Total Members: " + membersGroup.size());
-
-         //   membersGroup.add("Praful");
             final ArrayAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, membersGroup);
             listview.setAdapter(adapter);
-            final ArrayAdapter adaptermembers = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, latestMembers);
+            final ArrayAdapter adaptermembers = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, nonMembers);
             listview1.setAdapter(adaptermembers);
             if(isAdmin) {
                 listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -191,7 +189,7 @@ public class GroupManager extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         String item = ((TextView) view).getText().toString();
                         membersGroup.remove(item);
-                        latestMembers.add(item);
+                        nonMembers.add(item);
                         adapter.notifyDataSetChanged();
                         adaptermembers.notifyDataSetChanged();
                     }
@@ -201,7 +199,7 @@ public class GroupManager extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         String item = ((TextView) view).getText().toString();
                         membersGroup.add(item);
-                        latestMembers.remove(item);
+                        nonMembers.remove(item);
                         adapter.notifyDataSetChanged();
                         adaptermembers.notifyDataSetChanged();
                     }
@@ -230,7 +228,7 @@ public class GroupManager extends AppCompatActivity {
             requestMap.put("gid", group_id);
             requestMap.put("gname", group_name);
             Log.d("MYAPP: Latest members",""+latestNumbers.size());
-            for (String current : latestMembers)
+            for (String current : membersGroup)
                 latestNumbers.add(NumbersHash.getString(current));
             Log.d("MYAPP: Latest member",""+latestNumbers.size());
             requestMap.put("mems", new JSONArray(latestNumbers));

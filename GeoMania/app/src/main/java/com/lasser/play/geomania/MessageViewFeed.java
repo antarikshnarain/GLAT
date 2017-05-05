@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
@@ -26,7 +28,10 @@ public class MessageViewFeed extends AppCompatActivity {
 
     ListView listView_feed;
     EditText editText_my_message;
+    TextView creator_name, original_message;
+    HorizontalScrollView horizontalScrollView;
     int group_id, message_id;
+    String message_owner, main_message;
 
     SharedFunctions myfunction;
     CustomGroupListAdapter_MessageFeed adapter;
@@ -42,8 +47,17 @@ public class MessageViewFeed extends AppCompatActivity {
         Intent intent = getIntent();
         group_id = intent.getIntExtra("gid",0);
         message_id = intent.getIntExtra("mid",0);
+        message_owner = intent.getStringExtra("user");
+        main_message = intent.getStringExtra("message");
+
         listView_feed = (ListView) findViewById(R.id.listview_message_feed);
         editText_my_message = (EditText) findViewById(R.id.editText_my_message);
+        creator_name = (TextView) findViewById(R.id.textView_creatorName);
+        original_message = (TextView) findViewById(R.id.textView_originalMessage);
+        horizontalScrollView = (HorizontalScrollView) findViewById(R.id.horizontalScrollView);
+        creator_name.setText(message_owner);
+        original_message.setText(main_message);
+        horizontalScrollView.setVisibility(View.GONE);
 
         myfunction = new SharedFunctions(this);
         user = new ArrayList<>(); message = new ArrayList<>(); usericon = new ArrayList<>(); timestamp = new ArrayList<>();

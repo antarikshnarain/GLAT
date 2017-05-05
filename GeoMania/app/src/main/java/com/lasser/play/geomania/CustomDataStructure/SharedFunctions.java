@@ -43,8 +43,8 @@ public class SharedFunctions {
     public String user, token, phone, user_profile_pic;
 
     // Bitmap Variables
-    private final int imgWidth = 120;
-    private final int imgHeight = 120;
+    private final int imgWidth = 240;
+    private final int imgHeight = 240;
 
     // Server Constants
     public final String serverUrl = "52.172.193.163";//"192.168.43.231";
@@ -52,12 +52,13 @@ public class SharedFunctions {
     public final String root_path;
     // Request Codes
     public final static int GALLERY_IMAGE = 102;
-
+    public final static int IMAGE_CLICK = 401;
+    public final static int SUCCESS= 500;
     // Constructor
     public SharedFunctions(Context mContext){
         context = mContext;
         root_path = Environment.getExternalStorageDirectory().getPath()+"/GeoMania/";
-        String[] localdirs = {"temp","profile_pic","group_icon","object_file"};
+        String[] localdirs = {"temp","profile_pic","group_icon","object_file","media_file"};
         for (String a: localdirs
              ) {
             File mydir = new File(root_path+a);

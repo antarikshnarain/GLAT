@@ -842,8 +842,9 @@ public class Camera2BasicFragment extends Fragment
             // After this, the camera will go back to the normal state of preview.
             //closeCamera();
             //stopBackgroundThread();
-            getActivity().finish();
+            getActivity().setResult(myfunctions.SUCCESS);
             Log.d("MYAPP", "Finishing Activity Camera");
+            getActivity().finish();
             //mState = STATE_PREVIEW;
             //mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
             //mBackgroundHandler);

@@ -16,10 +16,12 @@ public class MapMessages {
     public int mid;
     public String createdby;
     public int message_state;
+    public JSONObject sensorData;
     public MapMessages(){
         latitude = longitude = 0.0;
         createdby = summary = "";
         message_state = gid = mid = 0;
+        sensorData = new JSONObject();
     }
 
 }

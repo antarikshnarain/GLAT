@@ -48,6 +48,7 @@ public class LocationMessage extends AppCompatActivity {
     int TYPE;
     UserSendMessage message;
     String imageData;
+    String object_file = "";
     int GALLERY_IMAGE = 102;
     int CAPTURE_IMAGE = 105;
     int CROP_IMAGE = 106;
@@ -88,7 +89,7 @@ public class LocationMessage extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode == GALLERY_IMAGE){
+        if(requestCode == myfunction.GALLERY_IMAGE){
             // Gallery Images
             if (resultCode == Activity.RESULT_OK){
                 Uri selectedImage = data.getData();
@@ -99,22 +100,23 @@ public class LocationMessage extends AppCompatActivity {
                 media_list.addView(adapter.getView(adapterCount++,null,null));
             }
         }
-        else if(requestCode == CAPTURE_IMAGE){
-            picUri = data.getData();
-            performCrop();
+        else if(requestCode == myfunction.IMAGE_CLICK){
+            if(resultCode == myfunction.SUCCESS)
+                performCrop(new File(myfunction.root_path+"temp/"+"cameraPic.jpg"));
         }
         else if(requestCode == CROP_IMAGE){
             Bundle extras = data.getExtras();
             Bitmap bitmap = (Bitmap) extras.get("data");
-            saveCroppedImage(bitmap);
+            saveCroppedImage(bitmap, "myobject.jpg");
             ImageView mImage = (ImageView) findViewById(R.id.imageView2);
             mImage.setImageBitmap(bitmap);
 
         }
     }
-    public void performCrop(){
+    public void performCrop(File mFile){
         try{
             Intent cropImageIntent = new Intent("com.android.camera.action.CROP");
+            picUri = Uri.fromFile(mFile);
             cropImageIntent.setDataAndType(picUri, "image/*");
             cropImageIntent.putExtra("crop","true");
             cropImageIntent.putExtra("aspectX",1);
@@ -129,11 +131,12 @@ public class LocationMessage extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    private void saveCroppedImage(Bitmap mBitmap){
+    private void saveCroppedImage(Bitmap mBitmap, String filename){
         FileOutputStream fileOutputStream = null;
         try{
-            fileOutputStream = new FileOutputStream(Environment.getExternalStorageDirectory().getPath()+"/GeoMania/image123.png");
-            mBitmap.compress(Bitmap.CompressFormat.PNG,100, fileOutputStream);
+            fileOutputStream = new FileOutputStream(myfunction.root_path+"object_file/"+filename);
+            mBitmap.compress(Bitmap.CompressFormat.JPEG,100, fileOutputStream);
+            object_file = myfunction.uploadFile(myfunction.root_path+"object_file/"+filename, myfunction.root_path+"object_file/");
             Toast.makeText(getApplicationContext(),"Image Saved Successfully",Toast.LENGTH_SHORT).show();
         }
         catch (Exception e){
@@ -162,7 +165,15 @@ public class LocationMessage extends AppCompatActivity {
             mydata.jsonData.put("lat",gps_latitude);
             mydata.jsonData.put("long",gps_longitude);
             mydata.jsonData.put("gid",group_id);
-            mydata.jsonData.put("sensorData", sensorData.sensorDataJson());
+            ArrayList<String> mediaFile = new ArrayList<String>();
+            for (String item: itemImage) {
+                mediaFile.add(myfunction.uploadFile(item, myfunction.root_path+ "media_file/"));
+            }
+            JSONObject sensor_data = new JSONObject();
+            sensor_data.put("sensor",sensorData.sensorDataJson());
+            sensor_data.put("media",mediaFile);
+            sensor_data.put("object", object_file);
+            mydata.jsonData.put("sensorData", sensor_data);
             mydata.jsonData.put("body", userMessage);
             JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
             if (data == null) {
@@ -171,26 +182,20 @@ public class LocationMessage extends AppCompatActivity {
             }
             if (data.getString("status").equals("success"))
                 Toast.makeText(this, "Message Created Successfully", Toast.LENGTH_SHORT).show();
-            //message.msg.text = user_message.getText().toString();
-            //setResult(101,new Intent().putExtra("LocationMessageData",message));
-            //finish();
-            // Get image from Gallary
-            //Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-            //photoPickerIntent.setType("image/*");
-            //startActivityForResult(photoPickerIntent,102);
-            //File sdcard = Environment.getExternalStorageDirectory();
-            // to this path add a new directory path
-            //File dir = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image1.jpg");
-            //File dir2 = new File(sdcard.getAbsolutePath() + "/GeoMania/"+"image3.jpg");
-            //Base64ToImage(ImageToBase64(dir),dir2);
         }
         catch(JSONException e){ e.printStackTrace(); }
         catch (InterruptedException e) { e.printStackTrace(); }
         catch (ExecutionException e) { e.printStackTrace(); }
     }
     public void object_generator(View v){
+        // Custom Camera App
+        Intent intent_mycamera = new Intent().setClass(this,MyCamera.class);
+        startActivityForResult(intent_mycamera, myfunction.IMAGE_CLICK);
+        /*
+        // System Camera App
         Intent captureImageIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(captureImageIntent,CAPTURE_IMAGE);
+        */
     }
     public void addMedia(View v){
         // Getting multiple images from gallery
@@ -199,30 +204,5 @@ public class LocationMessage extends AppCompatActivity {
         //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,"Select Images"),GALLERY_IMAGE);
-    }
-
-    public void sendDataToServer(File dir1, File dir2,String filename) throws JSONException{
-        URLDataHash mydata = new URLDataHash();
-        mydata.jsonData.put("image",myfunction.FileToBase64(dir1));
-        mydata.jsonData.put("fileName",filename);
-        mydata.url="192.168.43.231";
-        mydata.apicall="imageTest";//"user/signup";
-        //mydata.hashMap=hashMap;
-        try {
-            JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
-            Toast.makeText(getApplicationContext(),"Data Send to Server!",Toast.LENGTH_SHORT).show();
-            String fileData = data.getString("image");
-            String filename_new = data.getString("fileName");
-            myfunction.Base64ToFile(fileData,dir2);
-        }
-        catch (JSONException e){
-            e.printStackTrace();
-        }
-        catch (InterruptedException e){
-            e.printStackTrace();
-        }
-        catch (ExecutionException e) {
-            e.printStackTrace();
-        }
     }
 }

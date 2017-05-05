@@ -198,10 +198,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onInfoWindowClick(Marker marker){
         int id = (int) marker.getTag();
+        try {
+            // Mark Message as Read
+            URLDataHash mydata = new URLDataHash();
+            mydata.url = myfunction.serverUrl;
+            mydata.apicall = "group/markMessageRead";
+            mydata.jsonData.put("phone", myfunction.phone);
+            mydata.jsonData.put("token", myfunction.token);
+            mydata.jsonData.put("mid", messages.get(id).gid);
+            mydata.jsonData.put("gid", messages.get(id).mid);
+            // Request the server
+            JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
+            if (data == null) {
+                Log.d("MYAPP: ServerResp", "Error during server request");
+                Toast.makeText(getApplicationContext(),"Server Error", Toast.LENGTH_SHORT).show();
+            }
+        }
+        catch (JSONException e) { e.printStackTrace(); }
+        catch (InterruptedException e) { e.printStackTrace(); }
+        catch (ExecutionException e) { e.printStackTrace(); }
         // Start Message Feed Activity
         Intent message_feed_intent = new Intent().setClass(this,MessageViewFeed.class);
         message_feed_intent.putExtra("gid", messages.get(id).gid);
         message_feed_intent.putExtra("mid", messages.get(id).mid);
+        message_feed_intent.putExtra("user", marker.getTitle());
+        message_feed_intent.putExtra("message", marker.getSnippet());
+        message_feed_intent.putExtra("sensorData", messages.get(id).sensorData.toString());
         startActivity(message_feed_intent);
     }
     public void getLocation() {
@@ -251,7 +273,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void addMessageToMap(int id, double latitude, double longitude, int message_state, String summary, int gid, int mid, String createdby ) {
+    public void addMessageToMap(int id, double latitude, double longitude, int message_state, String summary, int gid, int mid, String createdby){//, JSONObject sensorData ) {
         MapMessages messageFeed = new MapMessages();
         messageFeed.latitude = latitude;
         messageFeed.longitude = longitude;
@@ -260,6 +282,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         messageFeed.mid = mid;
         messageFeed.createdby = createdby;
         messageFeed.message_state = message_state;
+       // messageFeed.sensorData = sensorData;
+        Log.d("MYAPP SensorData",messageFeed.sensorData.toString());
         // 0-> unread, 1-> read, 2-> mine
         Marker marker = null;
         Log.d("MYAPP: state", ""+message_state);
@@ -305,13 +329,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             JSONObject data = new nodeHttpRequest(this).execute(mydata).get();
             if(data == null){
                 Log.d("MYAPP: ServerResp","Error during server request");
-                ArrayList<String> t_name, t_icon, t_unread;
-                t_name = new ArrayList<String>();
-                t_icon = new ArrayList<String>();
-                t_unread = new ArrayList<String>();
-                t_name.add("Alpha");
-                t_icon.add("null");
-                t_unread.add("Unread: 23");
                 return;
             }
             progressDialog.dismiss();
@@ -322,7 +339,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             {
                 currentObj = groups.getJSONObject(i);
                 Log.d("MYAPP: Marker", "adding marker" + currentObj.toString());
-                addMessageToMap(i, currentObj.getDouble("lat"), currentObj.getDouble("long"), currentObj.getInt("readStatus"),currentObj.getString("body"), currentObj.getInt("gid"), currentObj.getInt("mid"), currentObj.getString("createdByName"));
+                addMessageToMap(i, currentObj.getDouble("lat"), currentObj.getDouble("long"),1 /*currentObj.getInt("readStatus")*/,currentObj.getString("body"), currentObj.getInt("gid"), currentObj.getInt("mid"), currentObj.getString("createdByName"));//, currentObj.getJSONObject("sensorData"));
             }
             Log.d("MYAPP: MAPS", "Loaded map with markers");
             //progressDialog.dismiss();
@@ -456,6 +473,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             case R.id.action_refresh_map:
                 Toast.makeText(getApplicationContext(),"Refresh Done!",Toast.LENGTH_SHORT).show();
+                loadGroupMessages();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
