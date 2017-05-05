@@ -248,6 +248,7 @@ public class GroupView extends AppCompatActivity implements LocationListener {
                 Toast.makeText(getApplicationContext(), "Refresh Group List", Toast.LENGTH_SHORT).show();
                 progressDialog.setMessage("Fetching Group Data ...");
                 progressDialog.show();
+                adapter.clear();
                 try{
                     requestGroupData();
                 }

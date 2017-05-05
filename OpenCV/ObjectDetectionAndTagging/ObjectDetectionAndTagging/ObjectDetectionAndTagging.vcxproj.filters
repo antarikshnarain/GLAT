@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VideoSIFTKeypoints.cpp">
+    <ClCompile Include="VideoSURFKeypoints.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

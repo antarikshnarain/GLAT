@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 {
 	int i,j;
 	String basePath2 = "C:/Users/antar/Documents/GitHub/GLAT/OpenCV/ObjectDetectionAndTagging/ObjectDetectionAndTagging/Images/";
-	Mat img_object = imread(basePath2 + "chair01.png");
+	Mat img_object = imread(basePath2 + "face2.jpg");
 	resize(img_object, img_object, Size(480, 640));
 	Mat img_scene;
 	Mat img_object_gray, img_scene_gray;
@@ -154,7 +154,7 @@ int main(int argc, char** argv)
 				line(img_scene, scene_corners[3], scene_corners[0], colorpalatte[j], 4);
 			}
 			imshow("Good Matches & Object detection", img_scene);
-			waitKey(1);
+			waitKey(100);
 		}
 	}
 

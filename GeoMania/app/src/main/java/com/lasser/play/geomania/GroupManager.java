@@ -84,7 +84,8 @@ public class GroupManager extends AppCompatActivity {
         progressDialog.setTitle(":((())):");
         progressDialog.setMessage("Retrieving Group Information ...");
         progressDialog.show();
-        showContacts();
+        if(checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED)
+            showContacts();
         progressDialog.dismiss();
         // getUserPhoneNumber();
     }
@@ -155,7 +156,7 @@ public class GroupManager extends AppCompatActivity {
                 return;
             }
             JSONObject currentObj;
-            boolean isAdmin = true;//data.getJSONObject("resp").getBoolean("isAdmin");
+            boolean isAdmin = data.getJSONObject("resp").getBoolean("isAdmin");
             if(!isAdmin){
                 // Disable Edit Text
                 groupName.setFocusable(false);
@@ -165,7 +166,7 @@ public class GroupManager extends AppCompatActivity {
                 FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
                 fab.setVisibility(View.INVISIBLE);
             }
-            JSONArray members = data.getJSONArray("resp");//.getJSONArray("contacts");
+            JSONArray members = data.getJSONObject("resp").getJSONArray("contacts");
             final ArrayList<String> membersGroup = new ArrayList<String>();
             for (int i = 0; i < members.length(); i++) {
                 currentObj = members.getJSONObject(i);
