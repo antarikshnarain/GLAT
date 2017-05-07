@@ -182,6 +182,7 @@ public class LocationMessage extends AppCompatActivity {
             }
             if (data.getString("status").equals("success")) {
                 Toast.makeText(this, "Message Created Successfully", Toast.LENGTH_SHORT).show();
+                setResult(myfunction.SUCCESS);
                 finish();
             }
         }

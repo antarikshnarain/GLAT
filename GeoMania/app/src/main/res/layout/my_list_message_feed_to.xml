@@ -46,7 +46,8 @@
         android:layout_height="wrap_content"
         android:text="User"
         android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/imageView_to_usericon" />
 
     <TextView
         android:id="@+id/textView_to_timestamp"

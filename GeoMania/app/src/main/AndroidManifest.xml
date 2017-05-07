@@ -19,6 +19,7 @@
 
     <!-- Camera Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
@@ -81,11 +82,6 @@
             android:label="@string/title_activity_maps"
             android:theme="@style/AppTheme.ActionBar" />
         <activity
-            android:name=".CameraObjectGenerator"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_camera_object_generator"
-            android:theme="@style/FullscreenTheme" />
-        <activity
             android:name=".LocationMessage"
             android:label="@string/title_activity_location_message"
             android:theme="@style/AppTheme.ActionBar" />
@@ -102,9 +98,11 @@
             android:label="@string/title_activity_group_manager"
             android:theme="@style/AppTheme.ActionBar" />
         <activity android:name=".MessageViewFeed" />
-        <activity android:name=".MyCamera"
+        <activity
+            android:name=".MyCamera"
             android:label="Camera"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".CameraObjectDetection"></activity>
     </application>
 
 </manifest>

@@ -30,6 +30,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -56,6 +58,7 @@ public class SharedFunctions {
     public final static int GALLERY_IMAGE = 102;
     public final static int IMAGE_CLICK = 401;
     public final static int SUCCESS= 500;
+    public final static int FAIL = 900;
     // Constructor
     public SharedFunctions(Context mContext){
         context = mContext;
@@ -101,6 +104,48 @@ public class SharedFunctions {
         bmOptions.inJustDecodeBounds = false;
         bmOptions.inSampleSize = scaleFactor;
         return BitmapFactory.decodeFile(filePath, bmOptions);
+    }
+    public void resizeBitmapFile(String filePath, int w, int h){
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+        int scaleFactor = 1;
+        if ((w > 0) || (h > 0)) {
+            scaleFactor = Math.max(photoW/w, photoH/h);
+        }
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        Bitmap bmp = BitmapFactory.decodeFile(filePath, bmOptions);
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(filePath);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, out); // bmp is your Bitmap instance
+            // PNG is a lossless format, the compression factor (100) is ignored
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    // Compare Bitmaps
+    public boolean bitmapCompare(String file1, String file2) {
+        Bitmap bitmap1 = BitmapFactory.decodeFile(file1);
+        Bitmap bitmap2 = BitmapFactory.decodeFile(file2);
+        ByteBuffer buffer1 = ByteBuffer.allocate(bitmap1.getHeight() * bitmap1.getRowBytes());
+        bitmap1.copyPixelsToBuffer(buffer1);
+
+        ByteBuffer buffer2 = ByteBuffer.allocate(bitmap2.getHeight() * bitmap2.getRowBytes());
+        bitmap2.copyPixelsToBuffer(buffer2);
+
+        return Arrays.equals(buffer1.array(), buffer2.array());
     }
     // Function get Get Path from Uri
     public String getRealPathFromURI(Uri uri) {
@@ -165,6 +210,8 @@ public class SharedFunctions {
             imagePath = root_path + "profile_pic/" + filename;
         else if (category == 2)
             imagePath = root_path + "group_icon/" + filename;
+        else if (category == 3)
+            imagePath = root_path + "media_file/" + filename;
         else
             return null;
         File mFile = new File(imagePath);

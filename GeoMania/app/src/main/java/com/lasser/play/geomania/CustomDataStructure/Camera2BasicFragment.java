@@ -543,7 +543,7 @@ public class Camera2BasicFragment extends Fragment
 
                 // Check if the flash is supported.
                 Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-                mFlashSupported = available == null ? false : available;
+                mFlashSupported = false;//available == null ? false : available;
 
                 mCameraId = cameraId;
                 return;

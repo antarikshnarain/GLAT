@@ -1,6 +1,7 @@
 package com.lasser.play.geomania;
 
 import android.*;
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,8 +21,12 @@ import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
@@ -37,6 +42,13 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -68,17 +80,17 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.zip.Inflater;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnInfoWindowClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, com.google.android.gms.location.LocationListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
+    Boolean flag_detect, flag_detected;
+    String object_file_name;
+    int temp_id=-1;
+    GoogleApiClient googleApiClient;
+    LocationRequest locationRequest;
     private GoogleMap mMap;
     private Marker myMarker;
-    boolean isGPSEnabled = false,isNetworkEnabled = false, canGetLocation = false;
     Location location;
     public double gps_longitude=0.0, gps_latitude=0.0;
-    public String provider;
-    final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 2; // 10 Meters
-    final long MIN_TIME_BW_UPDATES = 1000 * 2 * 1; // 1 minute
-    protected LocationManager locationManager;
 
     // Map Markers
     public ArrayList<Marker> map_messages;
@@ -101,6 +113,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     boolean first_flag = true;
     SharedFunctions myfunction;
 
+    FloatingActionButton button_objectDetect;
     // Intents
     Intent location_message_intent;
     @Override
@@ -130,7 +143,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         imgButton_no_location = (ImageButton) findViewById(R.id.imageButton_no_location);
         imgButton_no_location_tag = (ImageButton) findViewById(R.id.imageButton_no_location_tag);
         tv_message_type = (TextView) findViewById(R.id.textView_message_type);
-
+        button_objectDetect = (FloatingActionButton) findViewById(R.id.livemode);
+        button_objectDetect.setVisibility(View.INVISIBLE);
+        flag_detect = false;
+        flag_detected = false;
         // Initializing messages variable for map
         location_message_intent = new Intent().setClass(this,LocationMessage.class);
         location_message_intent.putExtra("gid", group_id);
@@ -138,15 +154,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         messages = new ArrayList<MapMessages>();
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         // Add a marker in Sydney, Australia,
@@ -166,38 +173,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             gps_latitude = location.getLatitude();
             gps_longitude = location.getLongitude();
             updateMap(gps_latitude,gps_longitude);
-            /*
-            String data = String.valueOf(gps_latitude)+','+String.valueOf(gps_longitude)+'\n';
-            dir.mkdir();
-            try {
-                File file = new File(dir, filename);
-                outputStream = new FileOutputStream(file,true);
-                outputStream.write(data.getBytes());
-                outputStream.close();
-                //Log.d("MYAPP", "Data Written to file successfully");
-            }
-            catch (Exception e){
-                Log.d("MYAPP","File Cannot be written");
-            }
-            */
         }
         Log.d("MYAPP", "Updating My Location!");
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
     }
     @Override
     public void onInfoWindowClick(Marker marker){
         int id = (int) marker.getTag();
+        if(!flag_detected || temp_id != id) {
+            try {
+                object_file_name = messages.get(id).sensorData.getString("object");
+                Log.d("MYAPP: ObjectFile", object_file_name);
+                Log.d("MYAPP: SensorDataObj", messages.get(id).sensorData.toString());
+                if (!object_file_name.equals("")) {
+                    Log.d("MYAPP: ObjectFile", object_file_name);
+                    button_objectDetect.setVisibility(View.VISIBLE);
+                    flag_detect = true;
+                    temp_id = id;
+                } else {
+                    flag_detect = false;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        if(messages.get(id).message_state==0) {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            Log.d("MYAPP: MarkerState",messages.get(id).message_state+"");
+            messages.get(id).message_state=1;
+            Log.d("MYAPP: MarkerState",messages.get(id).message_state+"");
+        }
+        if(flag_detect){
+            Toast.makeText(getApplicationContext(),"Detect object first!",Toast.LENGTH_SHORT).show();
+            return;
+        }
         try {
             // Mark Message as Read
             URLDataHash mydata = new URLDataHash();
@@ -229,62 +237,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         message_feed_intent.putExtra("message", marker.getSnippet());
         message_feed_intent.putExtra("sensorData", messages.get(id).sensorData.toString());
         startActivity(message_feed_intent);
+        flag_detected = false;
+    }
+    public void createLocationRequest(){
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
     public void getLocation() {
         try {
             if (this.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 Log.d("MYAPP", "Location Manager Successfully Created");
             }
-            locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
-            // getting GPS status
-            if(locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) !=null){
-                Location old_location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                Log.d("MYAPP: Location", "Loading last known location Network");
-                gps_latitude = location.getLatitude();
-                gps_longitude = location.getLongitude();
-                updateMap(gps_latitude,gps_longitude);
-                progressDialog.dismiss();
-                first_flag = false;
-            }
-            else if(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) !=null){
-                Location old_location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                Log.d("MYAPP: Location", "Loading last known location GPS");
-                gps_latitude = location.getLatitude();
-                gps_longitude = location.getLongitude();
-                updateMap(gps_latitude,gps_longitude);
-                progressDialog.dismiss();
-                first_flag = false;
-            }
-            else{
-                Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
-            }
-            boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            // getting network status
-            boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            if (!isGPSEnabled && !isNetworkEnabled) {
-                // no network provider is enabled
-            } else {
-                // First get location from Network Provider
-                //locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000, 5, this);
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 5, this);
-                Criteria criteria = new Criteria();
-                //criteria.setAccuracy(Criteria.ACCURACY_FINE);
-                //criteria.setPowerRequirement(Criteria.POWER_HIGH);
-                //criteria.setAltitudeRequired(true);
-                String provider = locationManager.getBestProvider(criteria, false);
-                Toast.makeText(this.getApplicationContext(), "Current Provider: " + provider, Toast.LENGTH_SHORT).show();
-                //locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                if (locationManager == null){
-                    Log.d("MYAPP", "Location Manager NULL");
-                }
-                Log.d("MYAPP", "Location Manager Initialized!");
+            if(googleApiClient == null){
+                googleApiClient = new GoogleApiClient.Builder(this)
+                        .addConnectionCallbacks(this)
+                        .addOnConnectionFailedListener(this)
+                        .addApi(LocationServices.API)
+                        .build();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     public void addMessageToMap(int id, double latitude, double longitude, int message_state, String summary, int gid, int mid, String createdby, JSONObject sensorData ) {
         MapMessages messageFeed = new MapMessages();
         messageFeed.latitude = latitude;
@@ -393,37 +369,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
     @Override
-    public void onResume(){
-        super.onResume();
-        if (imgButton_location.getVisibility() == View.VISIBLE){
-            imgButton_location.setVisibility(View.GONE);
-            imgButton_location_tag.setVisibility(View.GONE);
-            imgButton_no_location.setVisibility(View.GONE);
-            imgButton_no_location_tag.setVisibility(View.GONE);
-            tv_message_type.setVisibility(View.GONE);
-        }
-    }
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == 301) {
-            // Create Message
-            if (resultCode == 101) {
-                Toast.makeText(getApplicationContext(),"Message Send!",Toast.LENGTH_SHORT).show();
-                Log.d("MYAPP",data.getStringExtra("LocationMessageData"));
+        if(requestCode == 301) {
+            if (resultCode == myfunction.SUCCESS) {
+                Toast.makeText(getApplicationContext(), "Message Send!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Message Not Send!", Toast.LENGTH_SHORT).show();
+            }
+        }
+        if(requestCode == 701){
+            if(resultCode == myfunction.SUCCESS){
+                flag_detect=false;
+                flag_detected = true;
+            }
+            else if(resultCode == myfunction.FAIL) {
+                flag_detect = true;
+                flag_detected = false;
             }
             else{
-                Toast.makeText(getApplicationContext(),"Message Not Send!",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(),"Object not detected!",Toast.LENGTH_SHORT).show();
             }
-        }
-        else if(requestCode == 302){
-
-        }
-        else if (requestCode == 303){
-
-        }
-        else if (requestCode == 304){
-
         }
     }
     @Override
@@ -449,6 +415,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if(messages.get(i).message_state != 1){
                         map_messages.get(i).setVisible(false);
                     }
+                    else
+                        map_messages.get(i).setVisible(true);
                 }
                 return true;
             case R.id.action_viewunread:
@@ -457,6 +425,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if(messages.get(i).message_state != 0){
                         map_messages.get(i).setVisible(false);
                     }
+                    else
+                        map_messages.get(i).setVisible(true);
                 }
                 return true;
             case R.id.action_searchmap:
@@ -487,71 +457,80 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         location_message_intent.putExtra("latitude", gps_latitude);
         location_message_intent.putExtra("type",1);
         startActivityForResult(location_message_intent,301);
-        /*
-        // Setting Visibility
-        if(imgButton_location.getVisibility() == View.GONE){
-            imgButton_location.setVisibility(View.VISIBLE);
-            imgButton_location_tag.setVisibility(View.VISIBLE);
-            imgButton_no_location.setVisibility(View.VISIBLE);
-            imgButton_no_location_tag.setVisibility(View.VISIBLE);
-            tv_message_type.setVisibility(View.VISIBLE);
-        }
-        else if (imgButton_location.getVisibility() == View.VISIBLE){
-            imgButton_location.setVisibility(View.GONE);
-            imgButton_location_tag.setVisibility(View.GONE);
-            imgButton_no_location.setVisibility(View.GONE);
-            imgButton_no_location_tag.setVisibility(View.GONE);
-            tv_message_type.setVisibility(View.GONE);
-        }
-        */
     }
 
     public void livevideomode(View v){
-        Intent i = new Intent().setClass(this,SensorPage.class);
-        startActivity(i);
+        if(flag_detect) {
+            Intent i = new Intent().setClass(this, CameraObjectDetection.class);
+            i.putExtra("object",object_file_name);
+            startActivityForResult(i, 701);
+        }
     }
-    public void message_location(View v){
-        Log.d("MYAPP","Message Location");
-        location_message_intent.putExtra("longitude",gps_longitude);
-        location_message_intent.putExtra("latitude", gps_latitude);
-        location_message_intent.putExtra("type",1);
-        startActivityForResult(location_message_intent,301);
+    @Override
+    protected  void onStart(){
+        googleApiClient.connect();
+        super.onStart();
     }
-    public void message_location_tag(View v){
-        Log.d("MYAPP","Message Location Tag");
-        location_message_intent.putExtra("longitude",gps_longitude);
-        location_message_intent.putExtra("latitude", gps_latitude);
-        location_message_intent.putExtra("type",2);
-        startActivityForResult(location_message_intent,302);
+    @Override
+    protected void onStop(){
+        if(googleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+            googleApiClient.disconnect();
+        }
+        super.onStop();
+
     }
-    public void message_no_location(View v){
-        Log.d("MYAPP","Message No Location");
-        location_message_intent.putExtra("longitude",gps_longitude);
-        location_message_intent.putExtra("latitude", gps_latitude);
-        location_message_intent.putExtra("type",3);
-        startActivityForResult(location_message_intent,303);
+    @Override
+    protected void onPause(){
+        if(googleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+            googleApiClient.disconnect();
+        }
+        super.onPause();
     }
-    public void message_no_location_tag(View v){
-        Log.d("MYAPP","Message No Location Tag");
-        location_message_intent.putExtra("longitude",gps_longitude);
-        location_message_intent.putExtra("latitude", gps_latitude);
-        location_message_intent.putExtra("type",4);
-        startActivityForResult(location_message_intent,304);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (googleApiClient.isConnected()) {
+            if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 201);
+            }
+            createLocationRequest();
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+
+        }
     }
 
-    /**
-     * Demonstrates converting a {@link Drawable} to a {@link BitmapDescriptor},
-     * for use as a marker icon.
-     */
-    private BitmapDescriptor vectorToBitmap(@DrawableRes int id, @ColorInt int color) {
-        Drawable vectorDrawable = ResourcesCompat.getDrawable(getResources(), id, null);
-        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
-                vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        DrawableCompat.setTint(vectorDrawable, color);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (this.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.d("MYAPP", "Location Manager Successfully Created");
+        }
+        location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        if (location != null) {
+            Log.d("MYAPP: Location", "Loading last known location GOOGLE");
+            gps_latitude = location.getLatitude();
+            gps_longitude = location.getLongitude();
+            progressDialog.setMessage("Fetching Group Data ...");
+            loadGroupMessages();
+            progressDialog.dismiss();
+            first_flag = true;
+        }
+        createLocationRequest();
+        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient,locationRequest, this);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }
 

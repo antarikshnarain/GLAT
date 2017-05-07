@@ -46,8 +46,10 @@
         android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:text="User"
+        android:background="#ffb05f"
         android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true" />
+        android:layout_alignParentRight="true"
+        android:layout_toEndOf="@+id/imageView_from_usericon" />
 
     <TextView
         android:id="@+id/textView_from_timestamp"
