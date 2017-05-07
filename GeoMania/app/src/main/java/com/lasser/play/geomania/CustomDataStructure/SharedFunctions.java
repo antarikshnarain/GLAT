@@ -15,6 +15,8 @@ import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.lasser.play.geomania.AsyncJava.nodeHttpRequest;
 import com.lasser.play.geomania.R;
 

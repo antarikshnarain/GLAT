@@ -137,7 +137,7 @@ public class LocationMessage extends AppCompatActivity {
             fileOutputStream = new FileOutputStream(myfunction.root_path+"object_file/"+filename);
             mBitmap.compress(Bitmap.CompressFormat.JPEG,100, fileOutputStream);
             object_file = myfunction.uploadFile(myfunction.root_path+"object_file/"+filename, myfunction.root_path+"object_file/");
-            Toast.makeText(getApplicationContext(),"Image Saved Successfully",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(),"Image Saved Successfully",Toast.LENGTH_SHORT).show();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -180,8 +180,10 @@ public class LocationMessage extends AppCompatActivity {
                 Log.d("MYAPP: ServerResp", "Error during server request");
                 return;
             }
-            if (data.getString("status").equals("success"))
+            if (data.getString("status").equals("success")) {
                 Toast.makeText(this, "Message Created Successfully", Toast.LENGTH_SHORT).show();
+                finish();
+            }
         }
         catch(JSONException e){ e.printStackTrace(); }
         catch (InterruptedException e) { e.printStackTrace(); }

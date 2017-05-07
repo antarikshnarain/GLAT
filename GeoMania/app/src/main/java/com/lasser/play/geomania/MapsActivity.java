@@ -218,6 +218,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         catch (InterruptedException e) { e.printStackTrace(); }
         catch (ExecutionException e) { e.printStackTrace(); }
         // Start Message Feed Activity
+        if(messages.get(id).message_state==0) {
+            map_messages.get(id).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            messages.get(id).message_state=1;
+        }
         Intent message_feed_intent = new Intent().setClass(this,MessageViewFeed.class);
         message_feed_intent.putExtra("gid", messages.get(id).gid);
         message_feed_intent.putExtra("mid", messages.get(id).mid);
@@ -228,14 +232,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     public void getLocation() {
         try {
-            locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
-            // getting GPS status
-            isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            // getting network status
-            isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             if (this.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 Log.d("MYAPP", "Location Manager Successfully Created");
             }
+            locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+            // getting GPS status
+            if(locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) !=null){
+                Location old_location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                Log.d("MYAPP: Location", "Loading last known location Network");
+                gps_latitude = location.getLatitude();
+                gps_longitude = location.getLongitude();
+                updateMap(gps_latitude,gps_longitude);
+                progressDialog.dismiss();
+                first_flag = false;
+            }
+            else if(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) !=null){
+                Location old_location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                Log.d("MYAPP: Location", "Loading last known location GPS");
+                gps_latitude = location.getLatitude();
+                gps_longitude = location.getLongitude();
+                updateMap(gps_latitude,gps_longitude);
+                progressDialog.dismiss();
+                first_flag = false;
+            }
+            else{
+                Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
+            }
+            boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            // getting network status
+            boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // no network provider is enabled
             } else {
@@ -250,20 +275,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String provider = locationManager.getBestProvider(criteria, false);
                 Toast.makeText(this.getApplicationContext(), "Current Provider: " + provider, Toast.LENGTH_SHORT).show();
                 //locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                if (locationManager != null) {
-                    location = locationManager
-                            .getLastKnownLocation(provider);
-                    if (location != null) {
-                        gps_latitude = location.getLatitude();
-                        gps_longitude = location.getLongitude();
-                        updateMap(gps_latitude,gps_longitude);
-                        progressDialog.dismiss();
-                        first_flag = false;
-                        Log.d("MYAPP", "Loading last known location!");
-                    } else {
-                        Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
+                if (locationManager == null){
                     Log.d("MYAPP", "Location Manager NULL");
                 }
                 Log.d("MYAPP", "Location Manager Initialized!");
@@ -273,7 +285,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void addMessageToMap(int id, double latitude, double longitude, int message_state, String summary, int gid, int mid, String createdby){//, JSONObject sensorData ) {
+    public void addMessageToMap(int id, double latitude, double longitude, int message_state, String summary, int gid, int mid, String createdby, JSONObject sensorData ) {
         MapMessages messageFeed = new MapMessages();
         messageFeed.latitude = latitude;
         messageFeed.longitude = longitude;
@@ -282,7 +294,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         messageFeed.mid = mid;
         messageFeed.createdby = createdby;
         messageFeed.message_state = message_state;
-       // messageFeed.sensorData = sensorData;
+        messageFeed.sensorData = sensorData;
         Log.d("MYAPP SensorData",messageFeed.sensorData.toString());
         // 0-> unread, 1-> read, 2-> mine
         Marker marker = null;
@@ -305,7 +317,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.setSnippet(summary.substring(0,40)+"...");
         else
             marker.setSnippet(summary+"...");
-        map_messages.add(marker);
+        map_messages.add(id,marker);
         messages.add(id,messageFeed);
         Log.d("MYAPP: marker", marker.getTitle() + marker.getPosition().toString());
     }
@@ -339,7 +351,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             {
                 currentObj = groups.getJSONObject(i);
                 Log.d("MYAPP: Marker", "adding marker" + currentObj.toString());
-                addMessageToMap(i, currentObj.getDouble("lat"), currentObj.getDouble("long"),1 /*currentObj.getInt("readStatus")*/,currentObj.getString("body"), currentObj.getInt("gid"), currentObj.getInt("mid"), currentObj.getString("createdByName"));//, currentObj.getJSONObject("sensorData"));
+                addMessageToMap(i, currentObj.getDouble("lat"), currentObj.getDouble("long"),currentObj.getInt("readStatus"),currentObj.getString("body"), currentObj.getInt("gid"), currentObj.getInt("mid"), currentObj.getString("createdByName"), currentObj.getJSONObject("sensorData"));
             }
             Log.d("MYAPP: MAPS", "Loaded map with markers");
             //progressDialog.dismiss();
@@ -354,46 +366,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(mMap !=null){
             if(myMarker != null)
                 myMarker.remove();
-            myMarker=mMap.addMarker(new MarkerOptions().position(myLocation)
-                    .title("Mylocation").snippet(myLocation.toString()));
+            myMarker=mMap.addMarker(new MarkerOptions().position(myLocation));
+                  //  .title("Mylocation").snippet(myLocation.toString()));
+            /*
             CircleOptions circleOptions = new CircleOptions();
+
             circleOptions.center(myLocation);
             circleOptions.radius(2);
             circleOptions.fillColor(-16711936);
             mMap.addCircle(circleOptions);
             //mMap.addMarker(new MarkerOptions().position(myLocation).title("My Location").snippet("AWESOME").icon(vectorToBitmap(R.drawable.ic_launcher, Color.parseColor("#A4C639"))));
-
+            */
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
             // Zooming into the map N times.
             mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
             Log.d("MYAPP","Updating Map");
-            try {
-                GpsStatus gpsStatus = locationManager.getGpsStatus(null);
-                if(gpsStatus != null) {
-                    Iterable<GpsSatellite>satellites = gpsStatus.getSatellites();
-                    Iterator<GpsSatellite> sat = satellites.iterator();
-                    String lSatellites = null;
-                    int i = 0;
-                    Log.i("MYAPP","Showing List");
-                    while (sat.hasNext()) {
-                        GpsSatellite satellite = sat.next();
-                        lSatellites = "Satellite" + (i++) + ": "
-                                + satellite.getPrn() + ","
-                                + satellite.usedInFix() + ","
-                                + satellite.getSnr() + ","
-                                + satellite.getAzimuth() + ","
-                                + satellite.getElevation()+ "\n\n";
-
-                        Log.d("MYAPP",lSatellites);
-                    }
-                }
-                else{
-                    Log.e("MYAPP","Gps Status is NULL");
-                }
-            }
-            catch (SecurityException e){
-                Log.d("MYAPP","Security Exception");
-            }
         }
         else{
             Log.d("MYAPP","Map object NULL");
@@ -458,18 +445,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             case R.id.action_viewread:
                 Toast.makeText(getApplicationContext(),"View Read",Toast.LENGTH_SHORT).show();
+                for(int i=0;i<map_messages.size();i++){
+                    if(messages.get(i).message_state != 1){
+                        map_messages.get(i).setVisible(false);
+                    }
+                }
                 return true;
             case R.id.action_viewunread:
                 Toast.makeText(getApplicationContext(),"View Unread",Toast.LENGTH_SHORT).show();
+                for(int i=0;i<map_messages.size();i++){
+                    if(messages.get(i).message_state != 0){
+                        map_messages.get(i).setVisible(false);
+                    }
+                }
                 return true;
             case R.id.action_searchmap:
                 Toast.makeText(getApplicationContext(),"Filter by user",Toast.LENGTH_SHORT).show();
+                for(int i=0;i<map_messages.size();i++){
+                    map_messages.get(i).setVisible(true);
+                }
+                /*
                 if(mSearchView.getVisibility() == View.VISIBLE){
                     mSearchView.setVisibility(View.GONE);
                 }
                 else {
                     mSearchView.setVisibility(View.VISIBLE);
                 }
+                */
                 return true;
             case R.id.action_refresh_map:
                 Toast.makeText(getApplicationContext(),"Refresh Done!",Toast.LENGTH_SHORT).show();
@@ -481,6 +483,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void createMessage(View v){
+        location_message_intent.putExtra("longitude",gps_longitude);
+        location_message_intent.putExtra("latitude", gps_latitude);
+        location_message_intent.putExtra("type",1);
+        startActivityForResult(location_message_intent,301);
+        /*
         // Setting Visibility
         if(imgButton_location.getVisibility() == View.GONE){
             imgButton_location.setVisibility(View.VISIBLE);
@@ -496,6 +503,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             imgButton_no_location_tag.setVisibility(View.GONE);
             tv_message_type.setVisibility(View.GONE);
         }
+        */
     }
 
     public void livevideomode(View v){

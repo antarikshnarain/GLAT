@@ -4,13 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#fff5d5"
     tools:context="com.lasser.play.geomania.MessageViewFeed">
 
     <ListView
         android:id="@+id/listview_message_feed"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:background="#a6e6f1f1"
+        android:background="#fff5d5"
         android:layout_below="@+id/horizontalScrollView"
         android:layout_alignParentStart="true"
         android:layout_above="@+id/editText_my_message" />

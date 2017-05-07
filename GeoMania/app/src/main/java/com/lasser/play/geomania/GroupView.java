@@ -31,6 +31,7 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.lasser.play.geomania.AsyncJava.GpsData;
@@ -50,7 +51,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.json.JSONObject.NULL;
 
-public class GroupView extends AppCompatActivity implements LocationListener {
+public class GroupView extends AppCompatActivity implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     ListView myList;
     SearchView mSearchView;
 
@@ -63,7 +64,7 @@ public class GroupView extends AppCompatActivity implements LocationListener {
     final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 2; // 10 Meters
     final long MIN_TIME_BW_UPDATES = 1000 * 2 * 1; // 1 minute
     private double gps_latitude, gps_longitude;
-
+    GoogleApiClient googleApiClient;
     // Custom List Adapter
     ArrayList<String> list = new ArrayList<String>();
     CustomGroupListAdapter_GroupView adapter;
@@ -76,6 +77,9 @@ public class GroupView extends AppCompatActivity implements LocationListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_view);
         // Get All permissions
+        LocationManager l = (LocationManager) this.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        if(!l.isProviderEnabled(LocationManager.GPS_PROVIDER))
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
         if(checkSelfPermission(Manifest.permission_group.STORAGE) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission_group.LOCATION) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA}, 202);
         }
@@ -126,19 +130,57 @@ public class GroupView extends AppCompatActivity implements LocationListener {
 
     public void getLocation() {
         try {
-            locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
-            // getting GPS status
-            boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            // getting network status
-            boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             if (this.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 Log.d("MYAPP", "Location Manager Successfully Created");
             }
+            locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+            // getting GPS status
+            if(locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) !=null){
+                Location old_location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                Log.d("MYAPP: Location", "Loading last known location Network");
+                gps_latitude = old_location.getLatitude();
+                gps_longitude = old_location.getLongitude();
+                progressDialog.setMessage("Fetching Group Data ...");
+                try {
+                    requestGroupData();
+                }
+                catch (JSONException e){
+                    e.printStackTrace();
+                }
+                progressDialog.dismiss();
+                first_time = true;
+            }
+            else if(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) !=null){
+                Location old_location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                Log.d("MYAPP: Location", "Loading last known location GPS");
+                gps_latitude = old_location.getLatitude();
+                gps_longitude = old_location.getLongitude();
+                progressDialog.setMessage("Fetching Group Data ...");
+                try {
+                    requestGroupData();
+                }
+                catch (JSONException e){
+                    e.printStackTrace();
+                }
+                progressDialog.dismiss();
+                first_time = true;
+            }
+            else{
+                googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
+                googleApiClient.connect();
+
+                Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
+            }
+            googleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
+            googleApiClient.connect();
+            /*
+            boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            // getting network status
+            boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // no network provider is enabled
             } else {
                 // First get location from Network Provider
-                //locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, this);
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000, 5, this);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 5, this);
                 Criteria criteria = new Criteria();
@@ -147,31 +189,12 @@ public class GroupView extends AppCompatActivity implements LocationListener {
                 //criteria.setAltitudeRequired(true);
                 String provider = locationManager.getBestProvider(criteria, false);
                 Toast.makeText(this.getApplicationContext(), "Current Provider: " + provider, Toast.LENGTH_SHORT).show();
-                //locationManager.requestLocationUpdates(provider, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                if (locationManager != null) {
-                    location = locationManager
-                            .getLastKnownLocation(provider);
-                    if (location != null) {
-                        Log.d("MYAPP", "Loading Last known location!");
-                        gps_latitude = location.getLatitude();
-                        gps_longitude = location.getLongitude();
-                        progressDialog.setMessage("Fetching Group Data ...");
-                        try {
-                            requestGroupData();
-                        }
-                        catch (JSONException e){
-                            e.printStackTrace();
-                        }
-                        progressDialog.dismiss();
-                        first_time = true;
-                    } else {
-                        Toast.makeText(this, "Last Location Unknown", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
+                if (locationManager == null) {
                     Log.d("MYAPP", "Location Manager NULL");
                 }
                 Log.d("MYAPP", "Location Manager Initialized!");
             }
+            */
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -280,5 +303,36 @@ public class GroupView extends AppCompatActivity implements LocationListener {
             }
         }
     }
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        if (this.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.d("MYAPP", "Location Manager Successfully Created");
+        }
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        if (mLastLocation != null) {
+            Log.d("MYAPP: Location", "Loading last known location GOOGLE");
+            gps_latitude = mLastLocation.getLatitude();
+            gps_longitude = mLastLocation.getLongitude();
+            progressDialog.setMessage("Fetching Group Data ...");
+            try {
+                requestGroupData();
+            }
+            catch (JSONException e){
+                e.printStackTrace();
+            }
+            progressDialog.dismiss();
+            first_time = true;
+        }
+        if(googleApiClient.isConnected()){
+            googleApiClient.disconnect();
+        }
+    }
+    @Override
+    public void onConnectionSuspended(int t){
 
+    }
+    @Override
+    public void onConnectionFailed(ConnectionResult t){
+
+    }
 }
