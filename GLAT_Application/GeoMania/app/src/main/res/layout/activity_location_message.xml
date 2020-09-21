@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.lasser.play.geomania.LocationMessage">
+
+    <TextView
+        android:id="@+id/my_longitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logitude:"
+        android:textSize="20dp"
+        tools:layout_editor_absoluteX="162dp"
+        tools:layout_editor_absoluteY="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/my_latitude"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:id="@+id/my_latitude"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitude:"
+        android:textSize="20dp"
+        tools:layout_editor_absoluteX="162dp"
+        tools:layout_editor_absoluteY="52dp"
+        android:layout_marginTop="23dp"
+        android:layout_below="@+id/my_longitude"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:id="@+id/user_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Enter your message"
+        android:inputType="textMultiLine"
+        android:maxHeight="200dp"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="103dp"
+        android:layout_marginTop="28dp"
+        android:layout_below="@+id/my_latitude"
+        android:layout_alignParentStart="true" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/send_message_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="normal"
+        android:src="@drawable/send"
+        android:layout_below="@+id/user_message"
+        android:onClick="send_geo_message"
+        android:layout_alignParentEnd="true" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingAction_objectgen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/user_message"
+        android:clickable="true"
+        app:fabSize="normal"
+        android:onClick="object_generator"
+        android:src="@drawable/video" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingAction_addMedia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="addMedia"
+        android:clickable="true"
+        app:fabSize="normal"
+        android:src="@mipmap/plus2"
+        android:layout_alignTop="@+id/horizontalScrollView"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="71dp" />
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scrollbars="none"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/send_message_group"
+        android:background="#6a64df5d"
+        android:id="@+id/horizontalScrollView">
+        <LinearLayout
+            android:id="@+id/horizontal_list_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"/>
+    </HorizontalScrollView>
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/user_message"
+        android:layout_centerHorizontal="true"
+        app:srcCompat="@drawable/cast_album_art_placeholder" />
+
+</RelativeLayout>

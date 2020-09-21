@@ -1,0 +1,110 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0099cc"
+    tools:context="com.lasser.play.geomania.MapsActivity">
+
+    <SearchView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/searchView"
+        android:visibility="gone"/>
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/searchView" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/addMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="normal"
+        android:src="@mipmap/plus2"
+        android:onClick="createMessage"
+        android:layout_marginStart="17dp"
+        android:layout_marginBottom="13dp"
+        android:scaleType="fitCenter"
+        android:layout_alignParentBottom="true" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/livemode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:onClick="livevideomode"
+        app:fabSize="normal"
+        android:src="@mipmap/video"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="16dp"
+        android:layout_below="@+id/searchView"
+        android:layout_alignStart="@+id/addMessage" />
+
+    <ImageButton
+        android:id="@+id/imageButton_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/location_original"
+        android:layout_below="@+id/livemode"
+        android:background="@null"
+        android:layout_alignParentStart="true"
+        android:onClick="message_location"
+        android:visibility="gone"/>
+
+    <ImageButton
+        android:id="@+id/imageButton_location_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/location_tag_original"
+        android:layout_alignTop="@+id/imageButton_location"
+        android:layout_alignStart="@+id/imageButton_no_location_tag"
+        android:layout_marginStart="10dp"
+        android:background="@null"
+        android:onClick="message_location_tag"
+        android:visibility="gone"/>
+
+    <ImageButton
+        android:id="@+id/imageButton_no_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/no_location_original"
+        android:layout_above="@+id/addMessage"
+        android:background="@null"
+        android:layout_toEndOf="@+id/searchView"
+        android:onClick="message_no_location"
+        android:visibility="gone"/>
+
+    <ImageButton
+        android:id="@+id/imageButton_no_location_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/no_location_view_tag_original"
+        android:background="@null"
+        android:layout_alignTop="@+id/imageButton_no_location"
+        android:layout_alignParentEnd="true"
+        android:onClick="message_no_location_tag"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/textView_message_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Type of Message"
+        android:textColor="#f98d11"
+        android:textAllCaps="true"
+        android:textSize="40dp"
+        android:textStyle="bold"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/addMessage"
+        android:visibility="gone"/>
+
+</RelativeLayout>

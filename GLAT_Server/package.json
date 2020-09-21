@@ -1,0 +1,22 @@
+{
+  "name": "glat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "try1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.1.4",
+    "body-parser": "^1.16.0",
+    "caminte": "^0.3.6",
+    "chance": "^1.0.4",
+    "express": "^4.14.0",
+    "kue": "^0.11.5",
+    "pg": "^6.1.2",
+    "redis": "^2.6.5",
+    "solr-client": "^0.6.0"
+  }
+}
